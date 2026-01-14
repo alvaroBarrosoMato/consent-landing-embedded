@@ -2,247 +2,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script
-  src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-  data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
-  worker="https://consent-api.onetrust.com"
-></script>
-  
-<script>
-  window.OtConsentStub = window.OtConsentStub || [];
-  window.OtConsentStub.push(function (api) {
-    api.init({
-      container: "ot-container"
-    });
-  });
-</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consent Flow</title>
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Consent Landing Page</title>
-  <meta name="description" content="Landing page for collecting consent and preferences." />
   <style>
-    :root {
-      --bg: #0f172a;         /* slate-900 */
-      --card: #111827;       /* gray-900 */
-      --text: #f8fafc;       /* slate-50 */
-      --muted: #cbd5e1;      /* slate-300 */
-      --accent: #2563eb;     /* blue-600 */
-      --accent-2: #38bdf8;   /* sky-400 */
-      --danger: #ef4444;     /* red-500 */
-      --border: #1f2937;     /* gray-800 */
-    }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 600px at 20% 10%, rgba(56,189,248,0.15), transparent 50%),
-                  radial-gradient(800px 400px at 90% 0%, rgba(37,99,235,0.18), transparent 60%),
-                  var(--bg);
-      color: var(--text);
-      line-height: 1.5;
+      font-family: system-ui, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
     }
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 32px 16px 48px;
-    }
-    header {
-      text-align: center;
-      padding: 32px 0 12px;
-    }
-    h1 {
-      font-size: clamp(1.6rem, 2.5vw + 1rem, 2.4rem);
-      margin: 0 0 8px;
-      letter-spacing: 0.2px;
-    }
-    .sub {
-      color: var(--muted);
-      max-width: 720px;
-      margin: 0 auto 24px;
-    }
+
     .card {
-      background: linear-gradient(180deg, rgba(31,41,55,0.7), rgba(17,24,39,0.9));
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    }
-
-    form {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-    @media (min-width: 720px) {
-      form { grid-template-columns: 1fr 1fr; }
-      .span-2 { grid-column: span 2; }
-    }
-    label { display: block; font-weight: 600; margin-bottom: 6px; }
-    .field {
-      background: #0b1220;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 12px;
-      color: var(--text);
       width: 100%;
-    }
-    .helper { color: var(--muted); font-size: 0.9rem; }
-    .row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-
-    .checkbox-grid {
-      display: grid; gap: 8px; grid-template-columns: 1fr; 
-    }
-    @media (min-width: 720px) {
-      .checkbox-grid { grid-template-columns: 1fr 1fr; }
+      max-width: 520px;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+      animation: fadeIn 0.35s ease;
     }
 
-    .consent-line {
-      display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
-      padding: 12px; border: 1px dashed var(--border); border-radius: 10px; background: #0a1120;
+    h2 {
+      margin-top: 0;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #111;
     }
-    .consent-line input[type="checkbox"] { margin-top: 4px; }
 
-    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
-    .btn {
-      appearance: none; border: 1px solid transparent; border-radius: 10px;
-      padding: 10px 14px; font-weight: 600; cursor: pointer;
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 600;
     }
-    .btn-primary { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: white; }
-    .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
 
-    .legal { color: var(--muted); font-size: 0.85rem; }
-
-    /* Small container for the Web form container with ID ot-container */
-    .ot-wrapper {
-      border-top: 1px solid var(--border);
-      margin-top: 16px;
-      padding-top: 12px;
-    }
-    #ot-container {
-      background: #0b1220;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+    input, select {
+      width: 100%;
       padding: 12px;
-      min-height: 48px;
-      color: var(--muted);
-      font-size: 0.95rem;
+      border-radius: 10px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      background: #f9fafb;
     }
 
-    /* Accessibility focus */
-    .field:focus, .btn:focus, a:focus { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #2563eb;
+      background: white;
+    }
+
+    button {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      background: #2563eb;
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Manage Your Consent & Preferences</h1>
-      <p class="sub">Please review and submit your communication preferences. We respect your privacy and only contact you based on the choices you make here.</p>
-    </header>
 
-    <main class="card" role="main">
-      <form id="consent-form" class="span-2" aria-describedby="form-help">
-        <p id="form-help" class="helper span-2">Fields marked with * are required.</p>
+  <!-- STEP 1 -->
+  <div id="step1" class="card">
+    <h2>Your Details</h2>
 
-        <!-- Identity -->
-        <div>
-          <label for="firstName">First name *</label>
-          <input id="firstName" name="firstName" class="field" type="text" autocomplete="given-name" required />
-        </div>
+    <label for="firstName">First Name</label>
+    <input id="firstName" type="text" placeholder="Enter your name">
 
-        <div>
-          <label for="lastName">Last name *</label>
-          <input id="lastName" name="lastName" class="field" type="text" autocomplete="family-name" required />
-        </div>
+    <label for="email">Email *</label>
+    <input id="email" type="email" placeholder="your@email.com" required>
 
-        <div>
-          <label for="email">Email *</label>
-          <input id="email" name="email" class="field" type="email" inputmode="email" autocomplete="email" required />
-        </div>
+    <label for="country">Country/Region</label>
+    <select id="country">
+      <option value="">Select…</option>
+      <option value="ES">Spain</option>
+      <option value="PT">Portugal</option>
+      <option value="FR">France</option>
+      <option value="DE">Germany</option>
+      <option value="UK">United Kingdom</option>
+      <option value="US">United States</option>
+      <option value="MX">Mexico</option>
+      <option value="BR">Brazil</option>
+    </select>
 
-        <div>
-          <label for="phone">Phone (optional)</label>
-          <input id="phone" name="phone" class="field" type="tel" inputmode="tel" autocomplete="tel" />
-        </div>
-
-        <div>
-          <label for="company">Company</label>
-          <input id="company" name="company" class="field" type="text" autocomplete="organization" />
-        </div>
-
-        <div>
-          <label for="country">Country/Region *</label>
-          <select id="country" name="country" class="field" required>
-            <option value="" selected disabled>Choose…</option>
-            <option value="ES">Spain</option>
-            <option value="PT">Portugal</option>
-            <option value="FR">France</option>
-            <option value="DE">Germany</option>
-            <option value="UK">United Kingdom</option>
-            <option value="US">United States</option>
-            <option value="MX">Mexico</option>
-            <option value="BR">Brazil</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <!-- Preferences -->
-        <div class="span-2">
-          <label>Communication preferences</label>
-          <div class="checkbox-grid" role="group" aria-label="Communication preferences">
-            <label><input type="checkbox" name="pref_product_updates" /> Product updates</label>
-            <label><input type="checkbox" name="pref_events" /> Events & webinars</label>
-            <label><input type="checkbox" name="pref_newsletter" /> Monthly newsletter</label>
-            <label><input type="checkbox" name="pref_offers" /> Special offers</label>
-          </div>
-        </div>
-
-        <!-- Primary consent line -->
-        <div class="consent-line span-2">
-          <input id="marketingConsent" name="marketingConsent" type="checkbox" required />
-          <label for="marketingConsent">
-            I agree to receive communications from the organization about products, services, and events.
-            I understand I can withdraw my consent at any time.
-          </label>
-        </div>
-
-        <!-- Legal text -->
-        <p class="legal span-2">
-          By submitting this form, you confirm that you have read and agree to our
-          <a href="#" class="helper" aria-label="Privacy Policy (opens in a new tab)" target="_blank" rel="noopener">Privacy Policy</a>
-          and <a href="#" class="helper" aria-label="Terms of Use (opens in a new tab)" target="_blank" rel="noopener">Terms of Use</a>.
-        </p>
-
-        <!-- Actions -->
-        <div class="actions span-2">
-          <button type="submit" class="btn btn-primary">Submit</button>
-          <button type="reset" class="btn btn-secondary">Reset</button>
-        </div>
-
-        <!-- Small container hosting the Web form container HTML ID: ot-container -->
-        <div class="ot-wrapper span-2">
-          <div id="ot-container" aria-label="External web form container">
-            <!-- Embed or script that targets #ot-container can be injected here. -->
-            This is the placeholder container with ID <code>ot-container</code>.
-          </div>
-        </div>
-      </form>
-    </main>
+    <button id="nextBtn">Next</button>
   </div>
 
-  <script>
-    // Example: basic client-side validation/reminder
-    document.getElementById('consent-form').addEventListener('submit', function(e) {
-      const consent = document.getElementById('marketingConsent');
-      if (!consent.checked) {
-        e.preventDefault();
-        alert('Please tick the consent checkbox to proceed.');
-      }
-    });
 
-    // Example hook: external script could mount into #ot-container
-    // window.initExternalForm?.(document.getElementById('ot-container'));
+  <!-- STEP 2 -->
+  <div id="step2" class="card hidden">
+    <h2>Manage Your Consent</h2>
+    <p>Please review and update your consent preferences below.</p>
+
+    <!-- OneTrust mounts here -->
+    <div id="ot-container" style="margin-top: 20px;"></div>
+  </div>
+
+
+
+
+  <!-- Load OneTrust script -->
+  <script
+    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+    data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
+    worker="https://consent-api.onetrust.com">
   </script>
+
+
+
+  <!-- Logic -->
+  <script>
+    const nextBtn = document.getElementById("nextBtn");
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+
+    nextBtn.addEventListener("click", () => {
+
+      const email = document.getElementById("email").value.trim();
+      if (!email) {
+        alert("Please enter your email to continue.");
+        return;
+      }
+
+      // Show step 2
+      step1.classList.add("hidden");
+      step2.classList.remove("hidden");
+
+      // Mount OneTrust + Prefill
+      window.OtConsentStub = window.OtConsentStub || [];
+      window.OtConsentStub.push(function(api) {
+
+        // 1) Mount into container
+        api.init({ container: "ot-container" });
+
+        // 2) Prefill email
+        if (window.OtSdk) {
+          OtSdk("consent", "preFill", {
+            "Email": email // <-- Must match field label
+          },
+          "0ceb7c0c-d27e-43c6-9c9c-877694285648" // collection point ID
+          );
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>
