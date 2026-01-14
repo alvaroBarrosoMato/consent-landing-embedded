@@ -7,6 +7,16 @@
   data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
   worker="https://consent-api.onetrust.com"
 ></script>
+  
+<script>
+  window.OtConsentStub = window.OtConsentStub || [];
+  window.OtConsentStub.push(function (api) {
+    api.init({
+      container: "ot-container"
+    });
+  });
+</script>
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Consent Landing Page</title>
