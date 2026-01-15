@@ -83,6 +83,7 @@
     </div>
   </section>
   <script>
+    email = "";
     (function () {
       const CP_ID = "c9322d35-cb63-4974-b65a-5d415f818a05";
       const step1 = document.getElementById('step1');
@@ -103,7 +104,7 @@
           alert("Please provide a valid email.");
           return;
         }
-
+      
         // 1) Toggle UI
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
@@ -128,10 +129,9 @@
       // When the embedded form is ready, set initial values (if desired)
       window.addEventListener('OnetrustFormLoaded', (evt) => {
         
-      const prefillPayload = {
-          "Email": "test@gmail.com",
-          "Personalized Online Advertising" : "Checked" 
-        };
+     
+      
+      const email = document.getElementById('email').value.trim();
 
         try {
           // Your requested call:
