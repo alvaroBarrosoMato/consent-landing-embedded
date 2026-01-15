@@ -124,10 +124,18 @@
       // When the embedded form is ready, set initial values (if desired)
       window.addEventListener('OnetrustFormLoaded', (evt) => {
         
-        OneTrust.webform.prefill({
-        "Email": "example@email.com",
-        "Personalized Online Advertising": "Checked"
-        }, CP_ID);
+      const prefillPayload = {
+          "Email": "test@gmail.com",
+          "Personalized Online Advertising" : "Checked" 
+        };
+
+        try {
+          // Your requested call:
+          OtSdk("consent", "preFill", prefillPayload, CP_ID);
+          console.log('[OT] OtSdk preFill applied:', prefillPayload);
+        } catch (e) {
+          console.error('[OT] OtSdk preFill failed:', e);
+        }
         
         console.log('Prefilled: ', CP_ID);
         console.log('[OT] OnetrustFormLoaded event:', evt?.detail);
