@@ -135,7 +135,8 @@
 
         try {
           // Your requested call:
-          console.log(OtSdk("consent", "preFill", prefillPayload, CP_ID));
+          console.log("xxxxxxx - "+OtSdk("consent", "preFill", prefillPayload, CP_ID));
+          OtSdk("consent", "preFill", prefillPayload, CP_ID)
           console.log('[OT] OtSdk preFill applied:', prefillPayload);
         } catch (e) {
           console.error('[OT] OtSdk preFill failed:', e);
