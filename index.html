@@ -4,12 +4,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Consent Flow</title>
-  <meta name="description" content="Two-step consent flow with OneTrust prefill."/>
+  <title>Two‑Step Consent Flow</title>
+  <meta name="description" content="Two-step consent flow with OneTrust email prefill before mount."/>
 
+  <!-- Minimal, modern styling -->
   <style>
     :root {
-      --bg: #f3f4f6;
+      --bg: #f4f6f8;
       --card: #ffffff;
       --text: #111827;
       --muted: #6b7280;
@@ -20,16 +21,16 @@
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0; background: var(--bg); color: var(--text);
+      margin: 0; padding: 40px 16px; background: var(--bg); color: var(--text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      display: flex; justify-content: center; align-items: flex-start; padding: 40px 16px;
+      display: flex; justify-content: center; align-items: flex-start;
     }
     .card {
       width: 100%; max-width: 560px; background: var(--card);
       border-radius: 16px; padding: 28px; box-shadow: 0 12px 32px rgba(0,0,0,0.08);
-      animation: fadeIn .3s ease;
+      animation: fadeIn .24s ease;
     }
-    h1, h2 { margin: 0 0 8px; font-weight: 700; }
+    h2 { margin: 0 0 8px; font-weight: 700; }
     p.sub { margin: 0 0 20px; color: var(--muted); }
     label { display: block; margin: 14px 0 6px; font-weight: 600; }
     input, select {
@@ -37,7 +38,6 @@
       background: var(--input-bg); font-size: 1rem; transition: border-color .2s, background .2s;
     }
     input:focus, select:focus { outline: none; border-color: var(--primary); background: #fff; }
-    .row { display: grid; gap: 12px; grid-template-columns: 1fr; }
     .actions { margin-top: 18px; display: flex; gap: 12px; }
     button {
       flex: 1; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
@@ -47,8 +47,8 @@
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
     .hidden { display: none; }
-    @keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
     #ot-container { margin-top: 16px; min-height: 64px; }
+    @keyframes fadeIn { from {opacity:0; transform: translateY(8px);} to {opacity:1; transform: translateY(0);} }
   </style>
 </head>
 <body>
@@ -58,35 +58,33 @@
     <h2>Your Details</h2>
     <p class="sub">Tell us who you are. On the next step, you’ll manage your consent preferences.</p>
 
-    <div class="row">
-      <div>
-        <label for="firstName">First name</label>
-        <input id="firstName" type="text" placeholder="e.g. Álvaro"/>
-      </div>
+    <div>
+      <label for="firstName">First name</label>
+      <input id="firstName" type="text" placeholder="e.g. Álvaro"/>
+    </div>
 
-      <div>
-        <label for="email">Email *</label>
-        <input id="email" type="email" placeholder="alvaro@example.com" required/>
-      </div>
+    <div>
+      <label for="email">Email *</label>
+      <input id="email" type="email" placeholder="alvaro@example.com" required/>
+    </div>
 
-      <div>
-        <label for="country">Country/Region</label>
-        <select id="country">
-          <option value="">Select…</option>
-          <option value="ES">Spain</option>
-          <option value="PT">Portugal</option>
-          <option value="FR">France</option>
-          <option value="DE">Germany</option>
-          <option value="UK">United Kingdom</option>
-          <option value="US">United States</option>
-          <option value="MX">Mexico</option>
-          <option value="BR">Brazil</option>
-        </select>
-      </div>
+    <div>
+      <label for="country">Country/Region</label>
+      <select id="country">
+        <option value="">Select…</option>
+        <option value="ES">Spain</option>
+        <option value="PT">Portugal</option>
+        <option value="FR">France</option>
+        <option value="DE">Germany</option>
+        <option value="UK">United Kingdom</option>
+        <option value="US">United States</option>
+        <option value="MX">Mexico</option>
+        <option value="BR">Brazil</option>
+      </select>
     </div>
 
     <div class="actions">
-      <button id="nextBtn" class="btn-primary">Next</button>
+      <button id="nextBtn" class="btn-primary" type="button">Next</button>
     </div>
   </section>
 
@@ -95,7 +93,7 @@
     <h2>Manage Your Consent</h2>
     <p class="sub">Review and update your consent preferences below.</p>
 
-    <!-- OneTrust web form mounts here -->
+    <!-- OneTrust embedded form mounts here -->
     <div id="ot-container" aria-label="OneTrust web form container"></div>
 
     <div class="actions">
@@ -103,252 +101,67 @@
     </div>
   </section>
 
-  <!-- OneTrust Form Stub -->
+  <!-- OneTrust Form Stub (TRIAL). If using PROD, change both host and worker accordingly. -->
   <script
     src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-    data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
-    worker="https://consent-api.onetrust.com"
-  ></script>
-
-  <script>
-    // --- Robust helpers ---
-    function waitFor(checkFn, { interval = 150, timeout = 10000 } = {}) {
-      return new Promise((resolve, reject) => {
-        const start = Date.now();
-        const timer = setInterval(() => {
-          if (checkFn()) { clearInterval(timer); resolve(true); }
-          else if (Date.now() - start > timeout) { clearInterval(timer); reject(new Error('waitFor timed out')); }
-        }, interval);
-      });
-    }
-
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-    const nextBtn = document.getElementById('nextBtn');
-    const backBtn = document.getElementById('backBtn');
-
-    backBtn.addEventListener('click', () => {
-      step2.classList.add('hidden');
-      step1.classList.remove('hidden');
-      // Optional: clear OneTrust container on back
-      // document.getElementById('ot-container').innerHTML = '';
-    });
-
-    nextBtn.addEventListener('click', async () => {
-      const email = document.getElementById('email').value.trim();
-      if (!email) {
-        alert('Please enter your email to continue.');
-        return;
-      }
-
-      // Transition UI first
-      step1.classList.add('hidden');
-      step2.classList.remove('hidden');
-
-      try {
-        // 1) Ensure the stub queue exists
-        await waitFor(() => typeof window.OtConsentStub !== 'undefined');
-
-        // 2) Enqueue init + prefill after stub is ready
-        window.OtConsentStub = window.OtConsentStub || [];
-        window.OtConsentStub.push(async function (api) {
-          // 2a) Mount into our container
-          api.init({ container: 'ot-container' });
-
-          // 2b) Wait until OneTrust web form library is available
-          await waitFor(() => window.OneTrust && OneTrust.webform && typeof OneTrust.webform.preFill === 'function');
-
-          // 2c) (Optional but robust) Wait for form elements to render
-          await waitFor(() => !!document.querySelector('#ot-container form, #ot-container [data-ot-form]'));
-
-          // 3) Pre-fill using the exact action/syntax you requested
-          // NOTE: Field labels MUST match OneTrust default-language labels.
-          OneTrust.webform.preFill({
-            "Email": email,
-            // Include this if you want to pass an auxiliary free text value:
-            // "Free text input": "free text content"
-          }, "c9322d35-cb63-4974-b65a-5d415f818a05");
-          console.debug('[OneTrust] preFill executed with email:', email);
-        });
-      } catch (err) {
-        console.error('Error initializing OneTrust or prefilling:', err);
-      }
-    });
+    data-id="c9322d35-cb63-4974-b65a-5d415f818a05"
+    worker="https://consent-api-trial.onetrust.com">
   </script>
-  
-<script>
-  // ===== Logging helper =====
-  const L = (...args) => console.log('[OT-Flow]', ...args);
 
-  // ===== Wait utility with logs =====
-  function waitFor(checkFn, { interval = 150, timeout = 12000, label = 'condition' } = {}) {
-    return new Promise((resolve, reject) => {
-      const start = Date.now();
-      const t = setInterval(() => {
-        try {
-          if (checkFn()) {
-            clearInterval(t);
-            L('READY ->', label);
-            resolve(true);
-          } else if (Date.now() - start > timeout) {
-            clearInterval(t);
-            const err = new Error(`waitFor timed out: ${label}`);
-            console.error(err);
-            reject(err);
-          }
-        } catch (e) {
-          clearInterval(t);
-          console.error(`waitFor aborted: ${label}`, e);
-          reject(e);
-        }
-      }, interval);
-    });
-  }
+  <!-- Unified, simplified logic: prefill FIRST, then mount -->
+  <script>
+    // ---- Configure these two constants if needed ----
+    const EMAIL_LABEL = "Email"; // If your default-language label is Spanish, set to "Correo electrónico"
+    const COLLECTION_POINT_ID = "c9322d35-cb63-4974-b65a-5d415f818a05";
 
-  // ===== Read CP ID from the stub script to avoid mismatches =====
-  function getCollectionPointId() {
-    const s = document.querySelector('script[src*="OtFormStub.js"][data-id]');
-    return s ? s.getAttribute('data-id') : null;
-  }
-
-  // ===== Mount + Prefill with robust logs =====
-  async function mountOneTrustAndPrefill(emailValue) {
-    L('mountOneTrustAndPrefill() called with', emailValue);
-
-    // 1) Ensure the stub queue exists
-    await waitFor(() => typeof window.OtConsentStub !== 'undefined', { label: 'OtConsentStub' });
-
-    const cpId = getCollectionPointId();
-    if (!cpId) {
-      console.error('No Collection Point ID found on the OneTrust stub <script data-id="...">');
-      return;
-    }
-    L('Using Collection Point ID:', cpId);
-
-    window.OtConsentStub = window.OtConsentStub || [];
-    window.OtConsentStub.push(async function(api) {
-      L('OtConsentStub callback executing');
-
-      // 2) Mount the embedded form
-      try {
-        api.init({ container: 'ot-container' });
-        L('api.init({ container: "ot-container" }) called');
-      } catch (e) {
-        console.error('api.init error:', e);
-        return;
-      }
-
-      // 3) Wait for the OneTrust webform API and DOM to be present
-      await waitFor(() => window.OneTrust && OneTrust.webform, { label: 'OneTrust.webform' });
-      await waitFor(
-        () => !!document.querySelector('#ot-container form, #ot-container [data-ot-form]'),
-        { label: 'Embedded form DOM' }
-      );
-
-      // 4) Prefill: try exact default-language label(s) and multiple API surfaces
-      const labels = ["Email", "Correo electrónico"]; // <-- EDIT to match your default-language label if different
-      let didPrefill = false;
-
-      for (const label of labels) {
-        // Build the payload for this iteration
-        const payload = {};
-        payload[label] = emailValue;
-
-        try {
-          if (OneTrust.webform.preFill) {
-            L('Attempt preFill via OneTrust.webform.preFill with label:', label);
-            OneTrust.webform.preFill(payload, cpId);
-            didPrefill = true;
-            L('SUCCESS preFill (camel F) with', label);
-            break;
-          }
-        } catch (e) {
-          console.warn('preFill (camel F) failed with label:', label, e);
-        }
-
-        try {
-          if (OneTrust.webform.prefill) {
-            L('Attempt prefill via OneTrust.webform.prefill with label:', label);
-            OneTrust.webform.prefill(payload, cpId);
-            didPrefill = true;
-            L('SUCCESS prefill (lower f) with', label);
-            break;
-          }
-        } catch (e) {
-          console.warn('prefill (lower f) failed with label:', label, e);
-        }
-
-        try {
-          if (typeof window.OtSdk === 'function') {
-            L('Attempt preFill via OtSdk with label:', label);
-            OtSdk('consent', 'preFill', payload, cpId);
-            didPrefill = true;
-            L('SUCCESS OtSdk preFill with', label);
-            break;
-          }
-        } catch (e) {
-          console.warn('OtSdk preFill failed with label:', label, e);
-        }
-      }
-
-      if (!didPrefill) {
-        console.error('Prefill did not execute on any surface. Check label & environment.');
-      } else {
-        // Optional reinforcement in case the form re-renders shortly after mount
-        setTimeout(() => {
-          try {
-            const label = labels[0];
-            const payload = {};
-            payload[label] = emailValue;
-            if (OneTrust.webform.preFill) {
-              OneTrust.webform.preFill(payload, cpId);
-              L('Reinforcement preFill fired:', label);
-            } else if (OneTrust.webform.prefill) {
-              OneTrust.webform.prefill(payload, cpId);
-              L('Reinforcement prefill fired:', label);
-            } else if (typeof window.OtSdk === 'function') {
-              OtSdk('consent', 'preFill', payload, cpId);
-              L('Reinforcement OtSdk preFill fired:', label);
-            }
-          } catch (e) {/* ignore */}
-        }, 700);
-      }
-    });
-  }
-
-  // ===== Wire the "Next" button with visible logs =====
-  window.addEventListener('DOMContentLoaded', () => {
-    L('DOMContentLoaded');
-
-    const nextBtn = document.getElementById('nextBtn');
-    const step1 = document.getElementById('step1');
-    const step2 = document.getElementById('step2');
-
-    if (!nextBtn) {
-      console.error('No #nextBtn found. Check the button id.');
-      return;
+    // Ensure the command queue exists
+    function ensureStubQueue() {
+      window.OtConsentStub = window.OtConsentStub || [];
+      return window.OtConsentStub;
     }
 
-    nextBtn.addEventListener('click', () => {
-      L('Next clicked');
-      const email = document.getElementById('email')?.value?.trim();
-      if (!email) {
-        alert('Please enter your email to continue.');
-        return;
-      }
+    // Wire UI
+    window.addEventListener('DOMContentLoaded', () => {
+      const step1   = document.getElementById('step1');
+      const step2   = document.getElementById('step2');
+      const nextBtn = document.getElementById('nextBtn');
+      const backBtn = document.getElementById('backBtn');
 
-      // Show step 2 UI
-      if (step1 && step2) {
+      backBtn?.addEventListener('click', () => {
+        step2.classList.add('hidden');
+        step1.classList.remove('hidden');
+      });
+
+      nextBtn?.addEventListener('click', () => {
+        const email = document.getElementById('email')?.value?.trim();
+        if (!email) { alert('Please enter your email to continue.'); return; }
+
+        // Show Step 2 screen (container is visible, but not mounted yet)
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
-        L('Switched to Step 2');
-      }
 
-      // Mount and prefill
-      mountOneTrustAndPrefill(email);
+        // Queue: PREFILL first, then MOUNT the component
+        const queue = ensureStubQueue();
+        queue.push(function(api) {
+          // 1) Pre-fill before mount (preferred path)
+          if (window.OneTrust?.webform?.preFill) {
+            const payload = {}; payload[EMAIL_LABEL] = email;
+            OneTrust.webform.preFill(payload, COLLECTION_POINT_ID);
+          } else if (window.OneTrust?.webform?.prefill) {
+            // Some tenants expose lower-case 'prefill'
+            const payload = {}; payload[EMAIL_LABEL] = email;
+            OneTrust.webform.prefill(payload, COLLECTION_POINT_ID);
+          } else if (typeof window.OtSdk === 'function') {
+            // Fallback if preFill surface isn't exposed yet in this environment
+            const payload = {}; payload[EMAIL_LABEL] = email;
+            OtSdk("consent", "preFill", payload, COLLECTION_POINT_ID);
+          }
+
+          // 2) Mount into #ot-container (the component loads with the prefill value)
+          api.init({ container: "ot-container" });
+        });
+      });
     });
-  });
-</script>
-
+  </script>
 </body>
 </html>
