@@ -104,11 +104,7 @@
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
 
-        OneTrust.webform.prefill({
-        "Email": "example@email.com",
-        "Personalized Online Advertising": "Checked"
-        }, CP_ID);
-        console.log('Prefilled: ', CP_ID);
+        
         
         // 2) Install Collection Point
         try {
@@ -127,6 +123,11 @@
 
       // When the embedded form is ready, set initial values (if desired)
       window.addEventListener('OnetrustFormLoaded', (evt) => {
+        OneTrust.webform.prefill({
+        "Email": "example@email.com",
+        "Personalized Online Advertising": "Checked"
+        }, CP_ID);
+        console.log('Prefilled: ', CP_ID);
         console.log('[OT] OnetrustFormLoaded event:', evt?.detail);
         if (!evt?.detail || !evt.detail[CP_ID]) return;
 
