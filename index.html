@@ -1,297 +1,202 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Two‑Step Consent Flow (Instrumented)</title>
+<style>
+  /* ==============================
+     Site Design Tokens
+  =============================== */
+  :root {
+    --bg:#f4f6f8;
+    --card:#fff;
+    --text:#111;
+    --muted:#666;
+    --primary:#2563eb;
+    --border:#e5e7eb;
 
-  <!-- OneTrust Embedded Web Form Stub (trial) -->
-  <script>
-    // Initialize the Command Queue
-    window.OtSdk = window.OtSdk || function(){ (OtSdk.q = OtSdk.q || []).push(arguments) };
-  </script>
-  <!-- NOTE: make sure src is the real OneTrust embed URL you were given. 
-       It looked truncated in your snippet. Keep data-id and worker as provided by OneTrust. -->
-  <script
-    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
-    data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
-    worker="https://consent-api.onetrust.com">
-  </script>
-  
-  <style>
-    :root {
-      --bg:#f4f6f8; --card:#fff; --text:#111; --muted:#666; --primary:#2563eb; --border:#e5e7eb;
-      /* Optional: choose primary button text color */
-      --btn-text:#fff;
-    }
-    body {
-      margin:0; padding:40px 16px; background:var(--bg); color:var(--text);
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial; display:flex; justify-content:center;
-    }
-    .card {
-      width:100%; max-width:560px; background:var(--card); padding:28px;
-      border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.08);
-    }
-    h2 { margin:0 0 8px; font-weight:700; }
-    p.sub { margin:0 0 20px; color:var(--muted); }
-    label { display:block; margin:14px 0 6px; font-weight:600; }
-    input, select {
-      width:100%; padding:12px; border-radius:10px; border:1px solid var(--border);
-      background:#fff; color:inherit;
-      font:inherit;
-    }
-    input:focus, select:focus { outline:none; border-color:var(--primary); background:#fff; }
-    .actions { margin-top:20px; display:flex; gap:12px; }
-    button { flex:1; padding:14px; border:0; border-radius:10px; cursor:pointer; font-weight:700; }
-    .btn-primary { background:var(--primary); color:var(--btn-text); }
-    .btn-ghost { background:#fff; border:1px solid var(--border); color:inherit; }
-    .hidden { display:none; }
+    /* OT theming tokens (you can adjust for a square/flat look) */
+    --ot-surface: transparent;          /* or #fff to show a local card around the OT form */
+    --ot-border-color: transparent;     /* or var(--border) for a visible 1px frame */
+    --ot-radius: 0;                     /* 0 for square; 10px if you want rounded like site fields */
+    --ot-focus-ring: 0 0 0 2px rgba(37,99,235,0.15);
+    --ot-label: var(--text);
+    --ot-muted: var(--muted);
+    --ot-input-bg: #fff;
+    --ot-input-border: var(--border);
+    --ot-btn-primary-bg: var(--primary);
+    --ot-btn-primary-fg: #fff;
+    --ot-btn-secondary-bg: #fff;
+    --ot-btn-secondary-fg: var(--text);
+    --ot-btn-secondary-border: var(--border);
+  }
 
-    /* YOUR OT CONTAINER — remove dashed guide styles */
-    #ot-container {
-      margin-top:16px;
-      min-height:120px;
-      padding:0;              /* no extra padding */
-      border:none;            /* no border */
-      border-radius:0;        /* square */
-      background:transparent; /* no background box */
-    }
-    .hint { font-size:.9rem; color:#888; }
+  /* ==============================
+     App Shell
+  =============================== */
+  body {
+    margin:0; padding:40px 16px;
+    background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    display:flex; justify-content:center;
+  }
+  .card {
+    width:100%; max-width:560px; background:var(--card); padding:28px;
+    border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.08);
+  }
+  h2 { margin:0 0 8px; font-weight:700; }
+  p.sub { margin:0 0 20px; color:var(--muted); }
+  label { display:block; margin:14px 0 6px; font-weight:600; }
+  input, select {
+    width:100%; padding:12px; border-radius:10px; border:1px solid var(--border);
+    background:#fff; color:inherit; font:inherit;
+  }
+  input:focus, select:focus {
+    outline:none; border-color:var(--primary); background:#fff; box-shadow: var(--ot-focus-ring);
+  }
+  .actions { margin-top:20px; display:flex; gap:12px; }
+  button { flex:1; padding:14px; border:0; border-radius:10px; cursor:pointer; font-weight:700; }
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-ghost { background:#fff; border:1px solid var(--border); color:inherit; }
+  .hidden { display:none; }
 
-    /* ============================
-       OneTrust: Same-DOM theming
-       (When OT injects markup inside #ot-container)
-       ============================ */
+  /* OT container: remove debug frame and padding so OT content aligns with our layout */
+  #ot-container {
+    margin-top:16px; min-height:120px;
+    border:none; border-radius:0; padding:0; background:transparent;
+  }
+  .hint { font-size:.9rem; color:#888; }
 
-    /* Inherit typography everywhere inside the OT container */
-    #ot-container, #ot-container :where(*){
-      font-family:inherit!important;
-      color:inherit;
-      letter-spacing:normal;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+  /* ==========================================
+     OneTrust Embedded Form — Visual Unification
+     Works when OT renders in the same DOM.
+     If your CP renders in an iFrame, place an
+     equivalent of this inside OT Branding CSS.
+  =========================================== */
 
-    /* Remove all radii, borders, and shadows inside the OT form */
-    #ot-container :where(.ot-form, form, .ot-card, .ot-wrapper, .ot-panel, .ot-section, .ot-box) {
-      border:0!important;
-      border-radius:0!important;
-      box-shadow:none!important;
-      background:transparent!important;
-      padding-left:0; padding-right:0;
-    }
+  /* Inherit typography globally inside OT blocks */
+  #ot-container, #ot-container :where(*) {
+    font-family:inherit !important;
+    color:inherit;
+    letter-spacing:normal;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    box-sizing:border-box;
+  }
 
-    /* Field containers */
-    #ot-container :where(.ot-field, .ot-fieldset, .ot-group, fieldset){
-      border:0!important;
-      border-radius:0!important;
-      box-shadow:none!important;
-      background:transparent!important;
-      padding:0!important;
-      margin:0 0 12px!important;
-    }
+  /* Outer shells OT might inject — make them flat & consistent */
+  #ot-container :where(.ot-form, .ot-sdk-form, .ot-card, .ot-wrapper, .ot-panel, .ot-section, form) {
+    background: var(--ot-surface) !important;
+    border: 1px solid var(--ot-border-color) !important;
+    border-radius: var(--ot-radius) !important;
+    box-shadow: none !important;
+    padding: 0 !important;          /* Let our page spacing control outer rhythm */
+    margin: 0 !important;
+  }
 
-    /* Inputs, checkboxes, selects inside OT */
-    #ot-container :where(input, select, textarea){
-      font:inherit!important;
-      color:inherit!important;
-      border:1px solid var(--border)!important;
-      border-radius:0!important;
-      box-shadow:none!important;
-      background:#fff!important;
-    }
-    #ot-container :where(input[type="checkbox"]){
-      /* keep default checkbox footprint but square */
-      width:16px; height:16px; border-radius:2px!important;
-    }
+  /* Remove any decorative borders/frames */
+  #ot-container :where(.ot-border, .ot-outline) {
+    border:none !important; outline:none !important;
+  }
 
-    /* Submit / primary button in OT */
-    #ot-container :where(button, .ot-button, [type="submit"]){
-      font:inherit!important; font-weight:700!important;
-      border:0!important;
-      border-radius:0!important;        /* square button */
-      background:var(--primary)!important;
-      color:var(--btn-text)!important;
-      padding:12px 14px!important;
-      box-shadow:none!important;
-    }
+  /* Headings & text */
+  #ot-container :where(h1,h2,h3,h4,.ot-form-title) {
+    margin: 0 0 8px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    background: transparent !important;
+    border: 0 !important;
+  }
+  #ot-container :where(p,.ot-description,.ot-help) {
+    color: var(--ot-muted) !important;
+    margin: 0 0 16px !important;
+  }
 
-    /* Secondary/ghost buttons inside OT, if present */
-    #ot-container :where(.ot-button--secondary, .ot-btn-ghost){
-      background:#fff!important;
-      color:inherit!important;
-      border:1px solid var(--border)!important;
-    }
+  /* Labels */
+  #ot-container :where(label, legend, .ot-sdk-label) {
+    display:block !important;
+    margin:14px 0 6px !important;
+    font-weight:600 !important;
+    color: var(--ot-label) !important;
+  }
 
-    /* Headings/subtitles inside OT */
-    #ot-container :where(h1,h2,h3,h4,p,legend,label,span){
-      border:0!important;
-      border-radius:0!important;
-      box-shadow:none!important;
-      background:transparent!important;
-    }
+  /* Field containers & rows */
+  #ot-container :where(.ot-field, .ot-fieldset, .ot-group, .ot-form-row, .ot-sdk-row, fieldset) {
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    padding:0 !important;
+    margin:0 0 12px !important;
+  }
 
-    /* Remove any outer frame that OT might render */
-    #ot-container :where(.ot-border, .ot-outline){
-      border:none!important;
-      outline:none!important;
-    }
+  /* Inputs / selects / textareas */
+  #ot-container :where(input, select, textarea) {
+    width:100% !important;
+    padding:12px !important;
+    border:1px solid var(--ot-input-border) !important;
+    border-radius: var(--ot-radius) !important;      /* unify with site by toggling --ot-radius */
+    background: var(--ot-input-bg) !important;
+    color: var(--text) !important;
+    font-size:1rem !important;
+    box-shadow:none !important;
+  }
+  #ot-container :where(input:focus, select:focus, textarea:focus) {
+    outline:none !important;
+    border-color: var(--primary) !important;
+    box-shadow: var(--ot-focus-ring) !important;
+  }
 
-    /* Space normalization */
-    #ot-container :where(.ot-form, form){ margin:0!important; }
-    #ot-container :where(.ot-actions){ margin-top:16px!important; gap:12px!important; }
-  </style>
-</head>
-<body>
+  /* Checkboxes & radios */
+  #ot-container :where(input[type="checkbox"], input[type="radio"]) {
+    width:16px; height:16px;
+    margin-right:8px !important;
+    border-radius: calc(var(--ot-radius) / 4) !important; /* tiny rounding when radius > 0 */
+    transform:none !important;                             /* avoid layout shifts */
+  }
 
-  <!-- STEP 1 -->
-  <section id="step1" class="card" aria-label="Step 1: Your details">
-    <h2>Your Details 6</h2>
-    <p class="sub">Tell us who you are. On the next step, you’ll manage your consent preferences.</p>
+  /* Choice/group spacing */
+  #ot-container :where(.ot-choice, .ot-sdk-choice) {
+    margin: 12px 0 !important;
+  }
 
-    <label for="email">Email *</label>
-    <input id="email" type="email" placeholder="you@example.com" required/>
+  /* Action bars */
+  #ot-container :where(.ot-actions, .ot-buttonbar, .ot-form-actions) {
+    margin-top:16px !important; gap:12px !important;
+    background:transparent !important; border:0 !important;
+    padding:0 !important;
+  }
 
-    <label for="firstName">First name</label>
-    <input id="firstName" type="text"/>
+  /* Primary buttons */
+  #ot-container :where(button, .ot-sdk-btn, .ot-button, [type="submit"]) {
+    width:100% !important;
+    padding:12px 14px !important;
+    font-weight:700 !important;
+    font-size:1rem !important;
+    cursor:pointer !important;
+    border-radius: var(--ot-radius) !important;
+    border:0 !important;
+    box-shadow:none !important;
+  }
+  #ot-container :where(.ot-sdk-btn-primary, .ot-button--primary, button[type="submit"]) {
+    background: var(--ot-btn-primary-bg) !important;
+    color: var(--ot-btn-primary-fg) !important;
+  }
 
-    <label for="country">Country/Region</label>
-    <select id="country">
-      <option value="">Select…</option>
-      <option value="ES">Spain</option>
-      <option value="PT">Portugal</option>
-      <option value="FR">France</option>
-      <option value="DE">Germany</option>
-      <option value="UK">United Kingdom</option>
-      <option value="US">United States</option>
-      <option value="MX">Mexico</option>
-      <option value="BR">Brazil</option>
-    </select>
+  /* Secondary buttons */
+  #ot-container :where(.ot-sdk-btn-secondary, .ot-button--secondary) {
+    background: var(--ot-btn-secondary-bg) !important;
+    color: var(--ot-btn-secondary-fg) !important;
+    border: 1px solid var(--ot-btn-secondary-border) !important;
+  }
 
-    <div class="actions">
-      <button id="nextBtn" class="btn-primary" type="button">Next</button>
-    </div>
-  </section>
+  /* Errors / validation */
+  #ot-container :where(.ot-error, .ot-error-text, .ot-validation) {
+    color:#d9534f !important;
+    font-size:.875rem !important;
+    margin-top:4px !important;
+    background:transparent !important;
+    border:0 !important;
+  }
 
-  <!-- STEP 2 -->
-  <section id="step2" class="card hidden" aria-label="Step 2: Consent form">
-    <h2>Manage Your Consent</h2>
-    <p class="sub">Review and update your consent preferences below.</p>
-    <div class="hint">If nothing appears below within a few seconds, check console logs with prefix <strong>[OT]</strong>.</div>
-
-    <!-- OneTrust embedded form mounts here -->
-    <div id="ot-container" aria-label="OneTrust web form container"></div>
-
-    <div class="actions">
-      <button id="backBtn" class="btn-ghost" type="button">Back</button>
-    </div>
-  </section>
-
-  <script>
-    (function(){
-      const CP_ID = "c9322d35-cb63-4974-b65a-5d415f818a05";
-      const step1 = document.getElementById('step1');
-      const step2 = document.getElementById('step2');
-      const container = document.getElementById('ot-container');
-
-      const getStep1Values = () => ({
-        email: document.getElementById('email').value.trim(),
-        firstName: document.getElementById('firstName').value.trim(),
-        country: document.getElementById('country').value
-      });
-
-      // Helper: observe OT content and enforce styling (covers re-renders)
-      const observeOT = () => {
-        const mo = new MutationObserver(() => {
-          // Example: remove any outer border classes OT might add
-          container.querySelectorAll('[class*="border"], [class*="card"], [style]').forEach(el => {
-            // Strip inline borders/radii/shadows OT could inject
-            el.style.border = 'none';
-            el.style.borderRadius = '0';
-            el.style.boxShadow = 'none';
-            el.style.background = 'transparent';
-          });
-        });
-        mo.observe(container, { childList: true, subtree: true, attributes: true, attributeFilter: ['class','style'] });
-      };
-
-      // NEXT → show step2 and install CP
-      document.getElementById("nextBtn").addEventListener("click", () => {
-        const { email } = getStep1Values();
-        if (!email) {
-          alert("Please provide a valid email.");
-          return;
-        }
-
-        step1.classList.add('hidden');
-        step2.classList.remove('hidden');
-
-        try {
-          if (window.OneTrust?.webform?.InstallCP && OneTrust.webform.InstallCP.length >= 2) {
-            OneTrust.webform.InstallCP(CP_ID, { target: '#ot-container' });
-            console.log('[OT] InstallCP with target:', CP_ID);
-          } else if (window.OneTrust?.webform?.InstallCP) {
-            OneTrust.webform.InstallCP(CP_ID, function(){ console.log('[OT] InstallCP callback:', CP_ID); });
-          } else {
-            console.warn('[OT] OneTrust.webform.InstallCP not available yet');
-          }
-          observeOT();
-        } catch (e) {
-          console.error('[OT] InstallCP failed:', e);
-        }
-      });
-
-      // When the embedded form is ready, set initial values (if desired)
-      window.addEventListener('OnetrustFormLoaded', (evt) => {
-        console.log('[OT] OnetrustFormLoaded event:', evt?.detail);
-
-        // Pre-fill (fixing the undefined variable in your log)
-        try {
-          const prefillPayload = {
-            "Email": "alvaro.barroso@gmail.com",
-            "Personalized Online Advertising": "Checked"
-          };
-          if (window.OneTrust?.webform?.preFill) {
-            OneTrust.webform.preFill(prefillPayload, CP_ID);
-            console.log('[OT] preFill applied:', prefillPayload);
-          }
-        } catch (e) {
-          console.error('[OT] preFill failed:', e);
-        }
-
-        if (!evt?.detail || !evt.detail[CP_ID]) return;
-
-        const { email, firstName, country } = getStep1Values();
-
-        const setVal = (sel, value) => {
-          if (value == null || value === '') return;
-          const el = container.querySelector(sel);
-          if (!el) return;
-          if (el.type === 'checkbox') {
-            el.checked = !!value;
-          } else {
-            el.value = value;
-          }
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-        };
-
-        setVal('input[name="Email"]', email);
-        setVal('input[name="FirstName"]', firstName);
-        setVal('select[name="Country"]', country);
-
-        console.log('[OT] Prefilled DOM values');
-      });
-
-      // BACK → show step1 and clean container
-      document.getElementById('backBtn').addEventListener('click', () => {
-        step2.classList.add('hidden');
-        step1.classList.remove('hidden');
-        container.innerHTML = '';
-        console.log('[OT] Cleared container and returned to Step 1');
-      });
-    })();
-  </script>
-</body>
-</html>
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  }
+</style>
