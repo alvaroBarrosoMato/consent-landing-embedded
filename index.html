@@ -174,24 +174,31 @@
     display:flex;
   }
 
+  
+  /* Make OT submit button match your Back button */
   .ot-submit {
-    width:100% !important;
-    padding:14px !important;
-    background:var(--primary) !important;
-    color:white !important;
-    font-weight:700 !important;
-    font-size:1rem !important;
-    border:none !important;
-    border-radius:10px !important;  /* ≤— matches your buttons */
-    cursor:pointer !important;
-    box-shadow:none !important;
-    font-family:inherit !important;
+    width: 100% !important;
+    padding: 14px !important;
+    background: #ffffff !important;      /* white */
+    color: #111111 !important;           /* black text */
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    border: 1px solid #e5e7eb !important; /* same as .btn-ghost */
+    border-radius: 10px !important;       /* same as your UI */
+    cursor: pointer !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+  }
+  
+  .ot-submit:hover {
+    background: #f9f9f9 !important;       /* subtle hover, optional */
+  }
+  
+  .ot-submit:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important; /* same focus ring */
   }
 
-  .ot-submit:focus {
-    outline:none !important;
-    box-shadow:0 0 0 2px rgba(37,99,235,0.25) !important;
-  }
 </style>
 
 
