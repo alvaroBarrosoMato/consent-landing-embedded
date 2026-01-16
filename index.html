@@ -20,88 +20,202 @@
 
 
 
+
 <style>
-  :root { 
-    --bg:#f4f6f8; 
-    --card:#fff; 
-    --text:#111; 
-    --muted:#666; 
-    --primary:#2563eb; 
-    --border:#e5e7eb; 
+  /* ==============================
+     Site Design Tokens
+  =============================== */
+  :root {
+    --bg:#f4f6f8;
+    --card:#fff;
+    --text:#111;
+    --muted:#666;
+    --primary:#2563eb;
+    --border:#e5e7eb;
+
+    /* OT theming tokens (tune here) */
+    --ot-surface: transparent;                  /* use #fff for a local card, else transparent to blend */
+    --ot-border-color: transparent;             /* ensure no visible border on OT wrappers */
+    --ot-radius: 0;                             /* 0 = square; set to 10px to mirror your inputs/buttons */
+    --ot-focus-ring: 0 0 0 2px rgba(37,99,235,0.15);
+    --ot-label: var(--text);
+    --ot-muted: var(--muted);
+    --ot-input-bg: #fff;
+    --ot-input-border: var(--border);
+    --ot-btn-primary-bg: var(--primary);
+    --ot-btn-primary-fg: #fff;
+    --ot-btn-secondary-bg: #fff;
+    --ot-btn-secondary-fg: var(--text);
+    --ot-btn-secondary-border: var(--border);
   }
 
-  body { 
-    margin:0; 
-    padding:40px 16px; 
-    background:var(--bg); 
-    color:var(--text);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; 
-    display:flex; 
-    justify-content:center; 
+  /* ==============================
+     App Shell (existing)
+  =============================== */
+  body {
+    margin:0; padding:40px 16px;
+    background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    display:flex; justify-content:center;
   }
-
-  .card { 
-    width:100%; 
-    max-width:560px; 
-    background:var(--card); 
-    padding:28px;
-    border-radius:16px; 
-    box-shadow:0 8px 24px rgba(0,0,0,.08); 
+  .card {
+    width:100%; max-width:560px; background:var(--card); padding:28px;
+    border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.08);
   }
-
   h2 { margin:0 0 8px; font-weight:700; }
   p.sub { margin:0 0 20px; color:var(--muted); }
-
-  label { 
-    display:block; 
-    margin:14px 0 6px; 
-    font-weight:600; 
+  label { display:block; margin:14px 0 6px; font-weight:600; }
+  input, select {
+    width:100%; padding:12px; border-radius:10px; border:1px solid var(--border);
+    background:#fff; color:inherit; font:inherit;
   }
-
-  input, select { 
-    width:100%; 
-    padding:12px; 
-    border-radius:10px; 
-    border:1px solid var(--border); 
-  }
-
-  input:focus, select:focus { 
-    outline:none; 
-    border-color:var(--primary); 
-    background:#fff; 
-  }
-
-  .actions { 
-    margin-top:20px; 
-    display:flex; 
-    gap:12px; 
-  }
-
-  button { 
-    flex:1; 
-    padding:14px; 
-    border:0; 
-    border-radius:10px; 
-    cursor:pointer; 
-    font-weight:700; 
-  }
-
+  input:focus, select:focus { outline:none; border-color:var(--primary); background:#fff; box-shadow: var(--ot-focus-ring); }
+  .actions { margin-top:20px; display:flex; gap:12px; }
+  button { flex:1; padding:14px; border:0; border-radius:10px; cursor:pointer; font-weight:700; }
   .btn-primary { background:var(--primary); color:#fff; }
-  .btn-ghost { background:#fff; border:1px solid var(--border); }
+  .btn-ghost { background:#fff; border:1px solid var(--border); color:inherit; }
   .hidden { display:none; }
+  .hint { font-size:.9rem; color:#888; }
 
-  /* ✔️ CLEAN OT CONTAINER — no borders, no radius */
-  #ot-container { 
-    margin-top:16px; 
-    min-height:120px; 
-    border:none !important; 
-    border-radius:0 !important; 
-    padding:0 !important; 
-    background:transparent !important; 
+  /* ==============================
+     OT Mount Container (page)
+     - remove dashed guide & padding
+  =============================== */
+  #ot-container {
+    margin-top:16px; min-height:120px;
+    border:none !important; border-color:transparent !important;
+    border-radius:0 !important; padding:0 !important; background:transparent !important;
   }
 
-  .hint { font-size:.9rem; color:#888; }
+  /* ============================================================
+     OneTrust — Visual Unification (same-DOM or Branding CSS)
+     Targets the concrete wrapper you provided and its subtree.
+     If iFrame: paste this section into OT Branding › Custom CSS.
+  ============================================================ */
+
+  /* 0) Normalize the exact wrapper (remove any frame/border) */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 {
+    background: var(--ot-surface) !important;
+    border: 1px solid var(--ot-border-color) !important;  /* transparent – visually no border */
+    border-radius: var(--ot-radius) !important;
+    box-shadow: none !important;
+    padding: 0 !important;        /* let page control outer spacing */
+    margin: 0 !important;
+  }
+
+  /* 1) Global reset inside this wrapper */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05,
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(*) {
+    font-family:inherit !important;
+    color:inherit;
+    letter-spacing:normal;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    box-sizing:border-box;
+  }
+
+  /* 2) Remove decorative shells */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(.otwf-content, .otwf-close-cntr, .ot-form, .ot-form-content, .ot-scroll) {
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--ot-radius) !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 3) Headings & helper text */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(h1,h2,h3,h4,.ot-form-title) {
+    margin: 0 0 8px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    background: transparent !important;
+  }
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(p,.ot-desc) {
+    color: var(--muted) !important;
+    margin: 0 0 12px !important;
+    background: transparent !important;
+  }
+
+  /* 4) Rows/Groups */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(.otwf-chkbox, .ot-el, .ot-de, .ot-pur) {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 12px 0 !important;   /* align with Step-2 spacing */
+  }
+
+  /* 5) Labels */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 :where(label, .ot-label) {
+    display: inline-block !important;
+    margin: 0 0 6px !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+  }
+
+  /* 6) Inputs — email, etc. */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 input[type="email"],
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 input[type="text"],
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 select,
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 textarea {
+    width:100% !important;
+    padding:12px !important;
+    border:1px solid var(--ot-input-border) !important;
+    border-radius: var(--ot-radius) !important;   /* set to 10px if you want rounded like Step 1 */
+    background: var(--ot-input-bg) !important;
+    color: var(--text) !important;
+    font-size:1rem !important;
+    box-shadow:none !important;
+  }
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 input:focus,
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 select:focus,
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 textarea:focus {
+    outline:none !important;
+    border-color: var(--primary) !important;
+    box-shadow: var(--ot-focus-ring) !important;
+  }
+
+  /* 7) Checkboxes */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 input[type="checkbox"],
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 input[type="radio"] {
+    width:16px; height:16px;
+    margin-right:8px !important;
+    border-radius: calc(var(--ot-radius) / 4) !important; /* small rounding if radius > 0 */
+    transform:none !important;
+  }
+
+  /* 8) Errors */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 .ot-error {
+    color:#d9534f !important;
+    font-size:.875rem !important;
+    margin-top:4px !important;
+    background:transparent !important;
+    border:0 !important;
+  }
+
+  /* 9) Buttons bar */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 .ot-btns {
+    margin-top:16px !important;
+    gap:12px !important;
+    background:transparent !important; border:0 !important; padding:0 !important;
+  }
+
+  /* 10) Submit button */
+  .ot-consent-inline.ot-webformc9322d35-cb63-4974-b65a-5d415f818a05 .ot-submit {
+    width:100% !important;
+    padding:12px 14px !important;
+    font-weight:700 !important;
+    font-size:1rem !important;
+    cursor:pointer !important;
+    border-radius: var(--ot-radius) !important;
+    border:0 !important;
+    box-shadow:none !important;
+    background: var(--ot-btn-primary-bg) !important;
+    color: var(--ot-btn-primary-fg) !important;
+  }
 </style>
+
 
 </head>
 <body>
