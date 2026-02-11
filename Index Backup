@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Two‑Step Consent Flow (Instrumented)</title>
+
+  <!-- OneTrust Embedded Web Form Stub (trial) -->
+  <script>
+  // Initialize the Command Queue
+  window.OtSdk=window.OtSdk||function(){(OtSdk.q=OtSdk.q||[]).push(arguments)};
+  </script>
+  <script
+    src="https://privacyportaltrial.onetrust.com/consent-embedded-forms/consent-receipt-scripts/OtFormStub.js"
+    data-id="0ceb7c0c-d27e-43c6-9c9c-877694285648"
+    worker="https://consent-api.onetrust.com">
+  </script>
+
+
+
+
+
+<style>
+  :root { 
+    --bg:#f4f6f8; 
+    --card:#fff; 
+    --text:#111; 
+    --muted:#666; 
+    --primary:#2563eb; 
+    --border:#e5e7eb; 
+  }
+
+  body { 
+    margin:0; padding:40px 16px; 
+    background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    display:flex; justify-content:center; 
+  }
+
+  .card { 
+    width:100%; max-width:560px; background:var(--card); 
+    padding:28px; border-radius:16px; 
+    box-shadow:0 8px 24px rgba(0,0,0,.08); 
+  }
+
+  h2 { margin:0 0 8px; font-weight:700; }
+  p.sub { margin:0 0 20px; color:var(--muted); }
+
+  label { display:block; margin:14px 0 6px; font-weight:600; }
+
+  input, select { 
+    width:100%; padding:12px; 
+    border-radius:10px; 
+    border:1px solid var(--border); 
+    background:#fff; color:inherit; font:inherit;
+  }
+  input:focus, select:focus { 
+    outline:none; 
+    border-color:var(--primary); 
+    background:#fff; 
+    box-shadow:0 0 0 2px rgba(37,99,235,0.15);
+  }
+
+  .actions { margin-top:20px; display:flex; gap:12px; }
+
+  button { 
+    flex:1; padding:14px; 
+    border:0; border-radius:10px; 
+    cursor:pointer; font-weight:700; 
+    font-family:inherit;
+  }
+
+  .btn-primary { background:var(--primary); color:#fff; }
+  .btn-ghost { background:#fff; border:1px solid var(--border); }
+
+  .hidden { display:none; }
+
+  /* =========================================
+     CLEAN OT CONTAINER
+  ========================================== */
+  #ot-container { 
+    margin-top:16px; 
+    min-height:120px; 
+    border:none !important; 
+    border-color:transparent !important;
+    border-radius:0 !important; 
+    padding:0 !important; 
+    background:transparent !important; 
+  }
+
+  .hint { font-size:.9rem; color:#888; }
+
+  /* ============================================================
+     ONETRUST INLINE FORM BRANDING — MATCH SITE UI
+  ============================================================ */
+
+  /* Remove any container border */
+  .ot-consent-inline {
+    border:none !important;
+    background:transparent !important;
+    border-radius:0 !important;
+    padding:0 !important;
+    box-shadow:none !important;
+  }
+
+  /* Normalize all OT typography */
+  .ot-consent-inline, 
+  .ot-consent-inline * {
+    font-family:inherit !important;
+    color:inherit !important;
+  }
+
+  /* Remove internal OT card backgrounds/borders */
+  .otwf-content, 
+  .ot-form, 
+  .ot-form-content, 
+  .otwf-chkbox, 
+  .ot-el, 
+  .ot-pur, 
+  .ot-de {
+    background:transparent !important;
+    border:none !important;
+    box-shadow:none !important;
+    padding:0 !important;
+  }
+
+  /* Checkbox label rows */
+  .otwf-chkbox {
+    margin:12px 0 !important;
+  }
+
+  /* Checkbox input */
+  .otwf-chkbox input[type="checkbox"] {
+    width:18px; height:18px;
+    margin-right:10px !important;
+    border-radius:4px !important; 
+  }
+
+  /* Input fields (email etc.) */
+  .ot-email input {
+    width:100% !important;
+    padding:12px !important;
+    border:1px solid var(--border) !important;
+    border-radius:10px !important;
+    background:#fff !important;
+    color:var(--text) !important;
+    font-size:1rem !important;
+  }
+
+  .ot-email input:focus {
+    outline:none !important;
+    border-color:var(--primary) !important;
+    box-shadow:0 0 0 2px rgba(37,99,235,0.15) !important;
+  }
+
+  /* Error text */
+  .ot-error {
+    color:#d9534f !important;
+    font-size:.875rem !important;
+    margin-top:4px !important;
+  }
+
+  /* =========================================
+     MATCH SUBMIT BUTTON TO SITE BUTTONS
+  ========================================== */
+
+  .ot-btns {
+    margin-top:20px !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:none !important;
+    display:flex;
+  }
+
+  
+  /* Make OT submit button match your Back button */
+  .ot-submit {
+    width: 100% !important;
+    padding: 14px !important;
+    background: #ffffff !important;      /* white */
+    color: #111111 !important;           /* black text */
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    border: 1px solid #e5e7eb !important; /* same as .btn-ghost */
+    border-radius: 10px !important;       /* same as your UI */
+    cursor: pointer !important;
+    box-shadow: none !important;
+    font-family: inherit !important;
+  }
+  
+  .ot-submit:hover {
+    background: #f9f9f9 !important;       /* subtle hover, optional */
+  }
+  
+  .ot-submit:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25) !important; /* same focus ring */
+  }
+
+</style>
+
+
+
+</head>
+<body>
+
+  <!-- STEP 1 -->
+  <section id="step1" class="card" aria-label="Step 1: Your details">
+    <h2>Your Details 6</h2>
+    <p class="sub">Tell us who you are. On the next step, you’ll manage your consent preferences.</p>
+
+    <label for="email">Email *</label>
+    <input id="email" type="email" placeholder="you@example.com" required/>
+
+    <label for="firstName">First name</label>
+    <input id="firstName" type="text"/>
+
+    <label for="country">Country/Region</label>
+    <select id="country">
+      <option value="">Select…</option>
+      <option value="ES">Spain</option>
+      <option value="PT">Portugal</option>
+      <option value="FR">France</option>
+      <option value="DE">Germany</option>
+      <option value="UK">United Kingdom</option>
+      <option value="US">United States</option>
+      <option value="MX">Mexico</option>
+      <option value="BR">Brazil</option>
+    </select>
+
+    <div class="actions">
+      <button id="nextBtn" class="btn-primary" type="button">Next</button>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="step2" class="card hidden" aria-label="Step 2: Consent form">
+    <h2>Manage Your Consent</h2>
+    <p class="sub">Review and update your consent preferences below.</p>
+    <div class="hint">If nothing appears below within a few seconds, check console logs with prefix <strong>[OT]</strong>.</div>
+
+    <!-- OneTrust embedded form mounts here -->
+    <div id="ot-container" aria-label="OneTrust web form container"></div>
+
+    <div class="actions">
+      <button id="backBtn" class="btn-ghost" type="button">Back</button>
+    </div>
+  </section>
+  <script>
+    email = "";
+    (function () {
+      const CP_ID = "c9322d35-cb63-4974-b65a-5d415f818a05";
+      const step1 = document.getElementById('step1');
+      const step2 = document.getElementById('step2');
+      const container = document.getElementById('ot-container');
+
+      // Convenience for Step 1 field values
+      const getStep1Values = () => ({
+        email: document.getElementById('email').value.trim(),
+        firstName: document.getElementById('firstName').value.trim(),
+        country: document.getElementById('country').value
+      });
+
+      // NEXT → show step2 and install CP
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        const { email } = getStep1Values();
+        if (!email) {
+          alert("Please provide a valid email.");
+          return;
+        }
+      
+        // 1) Toggle UI
+        step1.classList.add('hidden');
+        step2.classList.remove('hidden');
+
+        
+        
+        // 2) Install Collection Point
+        try {
+          // If your stub supports a target container:
+          if (OneTrust?.webform?.InstallCP.length >= 2) {
+            OneTrust.webform.InstallCP(CP_ID, { target: '#ot-container' });
+            console.log('[OT] InstallCP with target:', CP_ID);
+          } else {
+            // Fallback: CP must be configured to mount into #ot-container in the Integrate tab
+            OneTrust.webform.InstallCP(CP_ID, function(){ console.log('[OT] InstallCP callback:', CP_ID); });
+          }
+        } catch (e) {
+          console.error('[OT] InstallCP failed:', e);
+        }
+      });
+
+      // When the embedded form is ready, set initial values (if desired)
+      window.addEventListener('OnetrustFormLoaded', (evt) => {
+        
+     
+      
+        try {
+          // Your requested call:
+          OneTrust.webform.preFill({
+              "Email": "alvaro.barroso@gmail.com",
+              "Personalized Online Advertising" : "Unchecked" 
+          }, CP_ID)
+          //OtSdk("consent", "preFill", prefillPayload);
+          console.log('[OT] OtSdk preFill applied:', prefillPayload);
+        } catch (e) {
+          console.error('[OT] OtSdk preFill failed:', e);
+        }
+        
+        console.log('Prefilled: ', CP_ID);
+        console.log('[OT] OnetrustFormLoaded event:', evt?.detail);
+        if (!evt?.detail || !evt.detail[CP_ID]) return;
+
+        const { email, firstName, country } = getStep1Values();
+
+        // Helper to set values and emit input/change so the CP picks them up
+        const setVal = (sel, value) => {
+          if (value == null || value === '') return;
+          const el = container.querySelector(sel);
+          if (!el) return;
+          // For checkboxes, allow boolean true pre-check
+          if (el.type === 'checkbox') {
+            el.checked = !!value;
+          } else {
+            el.value = value;
+          }
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        // Adjust selectors to your CP’s rendered field names/attributes
+        setVal('input[name="Email"]', email);
+        setVal('input[name="FirstName"]', firstName);
+        setVal('select[name="Country"]', country);
+
+        console.log('[OT] Prefilled DOM values');
+      });
+
+      // BACK → show step1 and clean container
+      document.getElementById('backBtn').addEventListener('click', () => {
+        step2.classList.add('hidden');
+        step1.classList.remove('hidden');
+        container.innerHTML = ''; // clear the embedded form to avoid duplicates
+        console.log('[OT] Cleared container and returned to Step 1');
+      });
+    })();
+  </script>
+</body>
+</html>
