@@ -184,7 +184,7 @@ REQUIRED VALUES (ask me for any missing):
 3) LOAD_METHOD: Instant or Manual
 4) (If Manual) TRIGGER_METHOD: “auto on page load” OR “button click” (choose one)
 5) TARGET_CONTAINER_ID (the DOM element id where the web form should render)
-6) BRANDING: Page title + primary color + background color (or tell me to use defaults)
+6) BRANDING: Explain the look and feel of the website you want to achieve.
 7) PREFILL_MODE: None OR Prefill via query parameters
 8) (If Prefill) List of fields to prefill in this format:
    - FormFieldLabel1=Example Value
@@ -210,18 +210,12 @@ A) Top-of-file comment:
 
 B) <head> includes:
    - Basic meta tags
-   - Page <title> using the provided branding title
    - The OneTrust Embedded Web Form SDK integration script (from Integrations tab). It must be included in the <head> as required.
 
 C) <body> structure:
    - A clean, responsive layout with:
-     - Header (title + small subtitle showing Load Method)
-     - Main content container with:
-       - A “demo card” panel that contains:
-         - A placeholder area where the embedded form will render (TARGET_CONTAINER_ID)
-         - If Manual + button click: a “Load Form” button that triggers InstallCP
-         - A small “Debug / Status” section
-   - Footer: “Created by Alvaro Barroso in Madrid, Españita.”
+   - A completely self designed interface that interacts with CSS and JS to create an experience that replicates the use case that the user specified.
+   - Make sure that you implement the TARGET_CONTAINER_ID
 
 D) JavaScript behavior:
    1) Provide a single configuration object at the top of the script that includes:
@@ -232,7 +226,7 @@ D) JavaScript behavior:
       - prefillMode
    2) Implement Manual vs Instant:
       - If Instant: do not call InstallCP manually (assume it appears on page load).
-      - If Manual: call InstallCP either on page load or on button click (based on TRIGGER_METHOD).
+      - If Manual: call InstallCP either on page load or on button click or at any other point following web design strategy.
    3) Add event listeners:
       - window.addEventListener('OnetrustFormLoaded', ...) -> update status UI + console.log details
       - window.addEventListener('OneTrustWebFormSubmitted', ...) -> show a success message + console.log details
@@ -244,7 +238,7 @@ D) JavaScript behavior:
       - IMPORTANT: Do NOT try to “set” fields by manipulating the DOM unless the docs explicitly provide a method. Prefill should rely on query parameters passed to the form URL and the OneTrust “Form Field Label” approach.
 
 E) Responsiveness:
-   - CSS must be responsive using modern layout primitives (flex/grid) and a mobile breakpoint.
+   - CSS must be responsive using modern layout primitives (flex/grid) and a mobile breakpoint. Use your best design capabilities to build the best interface posible visually with CSS and great visuals.
    - The layout must remain usable on phones (stacked sections, readable buttons, no horizontal scrolling).
 
 STEP 2 — Output format constraints
