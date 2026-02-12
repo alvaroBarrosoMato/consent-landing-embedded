@@ -904,24 +904,7 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
     function formatCardNumber(value) {
       const digits = normalizeCardNumber(value);
       return digits.replace(/(.{4})/g, "$1 ").trim();
-    }
-
-    function luhnCheck(numStr) {
-      const digits = numStr.replace(/\s+/g, "");
-      if (!digits || digits.length < 12) return false;
-      let sum = 0, alt = false;
-      for (let i = digits.length - 1; i >= 0; i--) {
-        let n = parseInt(digits[i], 10);
-        if (Number.isNaN(n)) return false;
-        if (alt) {
-          n *= 2;
-          if (n > 9) n -= 9;
-        }
-        sum += n;
-        alt = !alt;
-      }
-      return sum % 10 === 0;
-    }
+    
 
     function normalizeExp(value) {
       const digits = value.replace(/\D/g, "").slice(0, 4);
@@ -949,10 +932,6 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
       const exp = payment.exp.value.trim();
       const cvc = payment.cvc.value.trim();
 
-      if (!luhnCheck(number)) {
-        setPaymentMessage("err", "Payment failed", "Card number did not pass validation (Luhn).");
-        return false;
-      }
       if (!validExp(exp)) {
         setPaymentMessage("err", "Payment failed", "Expiry must be in MM/YY format and a valid month.");
         return false;
