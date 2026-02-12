@@ -555,7 +555,7 @@
                       <label for="cardnumber">Card number</label>
                       <span class="hint">Demo accepts test numbers</span>
                     </div>
-                    <input id="cardnumber" name="cardnumber" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="off" maxlength="19" />
+                    <input id="cardnumber" name="cardnumber" type="text" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="off" maxlength="19" />
                   </div>
 
                   <div class="fieldGrid">
@@ -593,7 +593,7 @@
                   <div id="paymentMsg" class="msg" role="status" aria-live="polite">
                     <span class="icon" aria-hidden="true"></span>
                     <div>
-                      <strong>Demo tip:</strong> Try a valid-looking number (Luhn check), then submit.
+                      <strong>Demo tip:</strong> Use <span class="mono">4242 4242 4242 4242</span>, any future <span class="mono">MM/YY</span>, any 3–4 digit <span class="mono">CVC</span>.
                       <div class="hint" style="margin-top:4px;">Nothing is stored; this only simulates success/failure states.</div>
                     </div>
                   </div>
@@ -630,12 +630,12 @@
       <section class="card" aria-label="OneTrust consent section">
         <div class="cardHeader">
           <div class="cardTitle">
-            <h2>2) Consent & Preferences</h2>
+            <h2>2) Consent &amp; Preferences</h2>
             <p>Embedded OneTrust UCPM Web Form Collection Point rendered below.</p>
           </div>
           <div class="pill" aria-label="OneTrust events pill">
             <span class="dot" style="background:var(--ib-yellow); box-shadow: 0 0 0 4px rgba(255,199,44,.22)" aria-hidden="true"></span>
-            Listening for <span class="mono" style="font-size:11px;">OnetrustFormLoaded</span> & <span class="mono" style="font-size:11px;">OneTrustWebFormSubmitted</span>
+            Listening for <span class="mono" style="font-size:11px;">OnetrustFormLoaded</span> &amp; <span class="mono" style="font-size:11px;">OneTrustWebFormSubmitted</span>
           </div>
         </div>
 
@@ -680,8 +680,8 @@
               <div class="mono" id="prefillLog">
 Prefill is disabled for this demo.
 If you ever enable prefilling, OneTrust supports passing query parameters where each key matches the “Form Field Label” configured in OneTrust.
-Example: ?Email=name%40domain.com&Country=Spain
-Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separated by “&”.
+Example: ?Email=name%40domain.com&amp;Country=Spain
+Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separated by “&amp;”.
               </div>
             </div>
           </div>
@@ -693,10 +693,12 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
   </div>
 
   <script>
+    "use strict";
+
     /**
      * Single configuration object (required).
-     * NOTE: Instant load means we do NOT call InstallCP manually; the embedded script will load/render on page load.
-     * Manual load (if you switch to it) uses OneTrust.webform.InstallCP(...) per OneTrust docs.
+     * Instant: do not call InstallCP manually (assume it appears on page load).
+     * Manual: call InstallCP when desired.
      */
     const CONFIG = {
       collectionPointId: "c9322d35-cb63-4974-b65a-5d415f818a05",
@@ -721,6 +723,14 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
       prefillLog: el("prefillLog")
     };
 
+    function safeStringify(obj) {
+      try {
+        return JSON.stringify(obj, (k, v) => (typeof v === "bigint" ? v.toString() : v), 2);
+      } catch (e) {
+        return String(obj);
+      }
+    }
+
     function setChip(state /* ok|err|neutral */, text) {
       const chip = ui.statusChip;
       chip.classList.remove("ok", "err");
@@ -734,22 +744,13 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
       const line = `[${stamp}] ${message}`;
       const payload = (data !== undefined) ? `\n${safeStringify(data)}` : "";
       ui.statusLog.textContent = (ui.statusLog.textContent ? (ui.statusLog.textContent + "\n") : "") + line + payload;
-      // keep last ~120 lines to prevent runaway
       const lines = ui.statusLog.textContent.split("\n");
-      if (lines.length > 120) ui.statusLog.textContent = lines.slice(lines.length - 120).join("\n");
-    }
-
-    function safeStringify(obj) {
-      try {
-        return JSON.stringify(obj, (k, v) => (typeof v === "bigint" ? v.toString() : v), 2);
-      } catch (e) {
-        return String(obj);
-      }
+      if (lines.length > 140) ui.statusLog.textContent = lines.slice(lines.length - 140).join("\n");
     }
 
     function updateHeaderStatus(text, tone /* ok|warn|neutral */) {
       ui.headerStatusText.textContent = text;
-      const dot = document.querySelector(".pill .dot");
+      const dot = document.querySelector("header .pill .dot");
       if (!dot) return;
       if (tone === "ok") {
         dot.style.background = "rgba(5,150,105,.95)";
@@ -767,7 +768,6 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
     let installAttempted = false;
 
     function canUseOneTrustInstall() {
-      // Per docs, InstallCP exists on OneTrust.webform or via command queue patterns.
       return Boolean(window.OneTrust && window.OneTrust.webform && typeof window.OneTrust.webform.InstallCP === "function");
     }
 
@@ -780,7 +780,7 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
       installAttempted = true;
 
       if (!canUseOneTrustInstall()) {
-        const msg = "OneTrust SDK not available yet — cannot call InstallCP. Check integration script in <head> or try again after load.";
+        const msg = "OneTrust SDK not available yet — cannot call InstallCP. Check integration script in <head>.";
         console.error(msg);
         setChip("err", "SDK missing");
         logStatus(msg);
@@ -790,8 +790,7 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
 
       try {
         setChip("neutral", "Installing…");
-        logStatus(`Calling OneTrust.webform.InstallCP("${CONFIG.collectionPointId}") → target #${CONFIG.containerId} (Manual).`);
-
+        logStatus(`Calling OneTrust.webform.InstallCP(\"${CONFIG.collectionPointId}\") (Manual).`);
         window.OneTrust.webform.InstallCP(CONFIG.collectionPointId, function (result) {
           console.log("InstallCP callback result:", result);
           logStatus("InstallCP callback returned:", result);
@@ -804,7 +803,7 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
       }
     }
 
-    // ---------- Events (required) ----------
+    // ---------- Required Events ----------
     window.addEventListener("OnetrustFormLoaded", (event) => {
       console.log("OnetrustFormLoaded event triggered", event.detail);
       setChip("ok", "Form loaded");
@@ -815,20 +814,17 @@ Note: values must be URL-encoded (e.g. “+” → “%2B”) and fields separat
     window.addEventListener("OneTrustWebFormSubmitted", (event) => {
       console.log("OneTrustWebFormSubmitted event triggered", event.detail);
       setChip("ok", "Form submitted");
-      updateHeaderStatus("Consent form submitted (receipt payload logged to console).", "ok");
+      updateHeaderStatus("Consent form submitted (payload logged to console).", "ok");
       logStatus("OneTrustWebFormSubmitted received. Consent receipt payload (event.detail):", event.detail);
-
-      // Redirect behavior: none (per requirement). We still show a local success banner.
       showConsentSuccess();
     });
 
     function showConsentSuccess() {
-      const box = ui.statusLog;
       const stamp = new Date().toLocaleString();
       logStatus(`✅ Consent submission acknowledged locally at ${stamp}. (No redirect configured)`);
     }
 
-    // ---------- Prefill helper (required guidance) ----------
+    // ---------- Prefill helper (query params) ----------
     function readQueryParameters() {
       const params = new URLSearchParams(window.location.search);
       const entries = [];
@@ -862,23 +858,32 @@ Add parameters using OneTrust “Form Field Label” keys, e.g.:
 
       ui.prefillChip.classList.add("ok");
       ui.prefillLog.textContent =
-`Query parameters detected (these would be used by OneTrust prefilling if the Collection Point is configured for it):\n\n` +
+`Query parameters detected (these would be used by OneTrust prefilling if enabled/configured):\n\n` +
 qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
 `\n\nReminder: values must be URL-encoded (e.g. “+” → “%2B”) and multiple fields are separated by “&”.`;
     }
 
     // ---------- Simulated Stripe behaviors ----------
     const payment = {
-      form: document.getElementById("fakePaymentForm"),
-      cardholder: document.getElementById("cardholder"),
-      cardnumber: document.getElementById("cardnumber"),
-      email: document.getElementById("email"),
-      exp: document.getElementById("exp"),
-      cvc: document.getElementById("cvc"),
-      payBtn: document.getElementById("payBtn"),
-      resetBtn: document.getElementById("resetPaymentBtn"),
-      msg: document.getElementById("paymentMsg")
+      form: el("fakePaymentForm"),
+      cardholder: el("cardholder"),
+      cardnumber: el("cardnumber"),
+      email: el("email"),
+      exp: el("exp"),
+      cvc: el("cvc"),
+      resetBtn: el("resetPaymentBtn"),
+      msg: el("paymentMsg")
     };
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, (c) => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[c]));
+    }
 
     function setPaymentMessage(type /* ok|err|neutral */, title, body) {
       payment.msg.classList.remove("ok", "err");
@@ -891,12 +896,6 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
         `<strong>${escapeHtml(title)}</strong><div class="hint" style="margin-top:4px;">${escapeHtml(body)}</div>`;
     }
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, (c) => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[c]));
-    }
-
     function normalizeCardNumber(value) {
       return value.replace(/\D/g, "").slice(0, 19);
     }
@@ -904,7 +903,24 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
     function formatCardNumber(value) {
       const digits = normalizeCardNumber(value);
       return digits.replace(/(.{4})/g, "$1 ").trim();
-    
+    }
+
+    function luhnCheck(numStr) {
+      const digits = numStr.replace(/\s+/g, "");
+      if (!digits || digits.length < 12) return false;
+      let sum = 0, alt = false;
+      for (let i = digits.length - 1; i >= 0; i--) {
+        let n = parseInt(digits[i], 10);
+        if (Number.isNaN(n)) return false;
+        if (alt) {
+          n *= 2;
+          if (n > 9) n -= 9;
+        }
+        sum += n;
+        alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
 
     function normalizeExp(value) {
       const digits = value.replace(/\D/g, "").slice(0, 4);
@@ -918,7 +934,6 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
       const mm = parseInt(m[1], 10);
       const yy = parseInt(m[2], 10);
       if (mm < 1 || mm > 12) return false;
-      // Basic plausibility only; demo mode.
       return yy >= 0 && yy <= 99;
     }
 
@@ -927,11 +942,14 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
     }
 
     function simulatePayment() {
-      // Validate minimal demo inputs
       const number = payment.cardnumber.value.trim();
       const exp = payment.exp.value.trim();
       const cvc = payment.cvc.value.trim();
 
+      if (!luhnCheck(number)) {
+        setPaymentMessage("err", "Payment failed", "Card number did not pass validation (Luhn). Try 4242 4242 4242 4242.");
+        return false;
+      }
       if (!validExp(exp)) {
         setPaymentMessage("err", "Payment failed", "Expiry must be in MM/YY format and a valid month.");
         return false;
@@ -947,8 +965,7 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
 
     // Input formatting hooks
     payment.cardnumber.addEventListener("input", (e) => {
-      const formatted = formatCardNumber(e.target.value);
-      e.target.value = formatted;
+      e.target.value = formatCardNumber(e.target.value);
     });
 
     payment.exp.addEventListener("input", (e) => {
@@ -961,11 +978,12 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
 
     payment.resetBtn.addEventListener("click", () => {
       payment.form.reset();
-      setPaymentMessage("neutral", "Demo tip:", "Try a valid-looking number (Luhn check), then submit. Nothing is stored; this only simulates states.");
+      setPaymentMessage("neutral", "Demo tip:", "Use 4242 4242 4242 4242, any future MM/YY, any 3–4 digit CVC.");
     });
 
     payment.form.addEventListener("submit", (e) => {
       e.preventDefault();
+      // Prevents browser default GET submission (and URL query params)
       simulatePayment();
     });
 
@@ -973,7 +991,6 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
     (function boot() {
       ui.loadMethodLabel.textContent = CONFIG.loadMethod;
       ui.cpLabel.textContent = CONFIG.collectionPointId;
-      ui.prefillChipText.textContent = `Prefill mode: ${CONFIG.prefillMode}`;
 
       setChip("neutral", "Waiting…");
       ui.statusLog.textContent = "";
@@ -982,7 +999,6 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
 
       renderPrefillDebug();
 
-      // Fail-safe checks
       const container = document.getElementById(CONFIG.containerId);
       if (!container) {
         const msg = `TARGET_CONTAINER_ID not found in DOM: #${CONFIG.containerId}`;
@@ -993,18 +1009,16 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
         return;
       }
 
-      // Instant vs Manual behavior (required)
       if (CONFIG.loadMethod === "Instant") {
-        // Do NOT call InstallCP manually (per requirement). Assume the embedded integration script handles it on page load.
+        // Do NOT call InstallCP manually.
         updateHeaderStatus("Instant load configured — waiting for OneTrust to render the form…", "warn");
         logStatus("Load method is Instant — not calling InstallCP.");
       } else {
-        // Manual: call InstallCP on page load as an example strategy.
         updateHeaderStatus("Manual load configured — attempting InstallCP…", "warn");
         installCollectionPointManual("auto on page load");
       }
 
-      // Watchdog: if OneTrust isn't detected after a short delay, surface a helpful status (without calling InstallCP for Instant).
+      // Watchdog: if OneTrust isn't detected after a short delay, show a helpful status.
       window.setTimeout(() => {
         const hasSdk = Boolean(window.OneTrust || window.OtSdk);
         if (!hasSdk) {
@@ -1023,3 +1037,4 @@ qp.map(([k, v]) => `- ${k} = ${v}`).join("\n") +
     })();
   </script>
 </body>
+</html>
