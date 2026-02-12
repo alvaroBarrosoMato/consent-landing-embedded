@@ -152,7 +152,7 @@ At the top of the HTML file:
 ## Step 8: View Your Collection Point in the Library
 
 Open:
-https://alvarobarrosomato.github.io/consent-landing-embedded/index.html
+https://alvarobarrosomato.github.io/UCPM-Library
 
 Updates may take a couple of minutes to appear.
 
