@@ -170,16 +170,90 @@ Updates may take a couple of minutes to appear.
 ## Using Copilot to Generate an Embedded Collection Point
 
 ```text
-Create a single, self-contained HTML file that embeds a OneTrust UCPM Embedded Web Form Collection Point.
+You are an expert web developer implementing a OneTrust UCPM Embedded Web Form Collection Point as a single-file demo page (one .html file with embedded CSS + JS). Your goal is to generate a reliable, copy/paste-ready HTML file that embeds a published OneTrust Embedded Web Form Collection Point.
 
-Requirements:
-- Include OneTrust SDK script
-- Use manual InstallCP loading
-- Listen for OnetrustFormLoaded and OneTrustWebFormSubmitted
-- Log events to console
-- Add top-level Description comment
+IMPORTANT: Before generating the final HTML, you MUST do this:
 
-Use placeholders for Collection Point ID and script URL.
+STEP 0 — Validate inputs (fail-safe)
+- If any of the required values are missing, ask me for them in a short checklist, then STOP.
+- Only generate the HTML after all required values are provided.
+
+REQUIRED VALUES (ask me for any missing):
+1) COLLECTION_POINT_ID (the OneTrust Embedded Web Form collection point id)
+2) ONE_TRUST_EMBED_SCRIPT (the “Integration Script” URL/snippet from the Collection Point → Integrations tab; specify whether it’s Test or Production)
+3) LOAD_METHOD: Instant or Manual
+4) (If Manual) TRIGGER_METHOD: “auto on page load” OR “button click” (choose one)
+5) TARGET_CONTAINER_ID (the DOM element id where the web form should render)
+6) BRANDING: Page title + primary color + background color (or tell me to use defaults)
+7) PREFILL_MODE: None OR Prefill via query parameters
+8) (If Prefill) List of fields to prefill in this format:
+   - FormFieldLabel1=Example Value
+   - FormFieldLabel2=Example Value
+   Note: these labels must match the “Form Field Label” configured in OneTrust for that field.
+9) OPTIONAL: redirect behavior after submit (none / show success message / redirect URL)
+
+WHERE TO FIND THE REQUIRED VALUES (explain briefly in your answer):
+- COLLECTION_POINT_ID and ONE_TRUST_EMBED_SCRIPT: go to OneTrust UCPM → Interfaces → Collection Points → open the Embedded Web Form → Integrations tab. The Integrations tab is available after publishing and provides Test/Production scripts. Also, the integration settings indicate whether the form is set to Manual vs Instant load. (Source: OneTrust docs) 
+- Manual loading uses InstallCP to force the form to load. (Source: OneTrust docs)
+
+REFERENCES YOU MUST FOLLOW (do not invent APIs):
+- Manual load: Use InstallCP to load the web form when load method is Manual.
+- Events: Implement listeners for:
+  - OnetrustFormLoaded (form successfully loaded)
+  - OneTrustWebFormSubmitted (form submitted; consent receipt payload details available in event)
+- Prefill (if enabled): Explain that prefilling is done by passing query parameters using the “Form Field Label” from OneTrust, and that values must be URL-encoded (e.g. “+” becomes “%2B”), and multiple fields are separated by “&”.
+
+STEP 1 — Generate the single HTML file
+Generate a single .html file with:
+A) Top-of-file comment:
+   <!-- Description: <one sentence describing what this demo does> -->
+
+B) <head> includes:
+   - Basic meta tags
+   - Page <title> using the provided branding title
+   - The OneTrust Embedded Web Form SDK integration script (from Integrations tab). It must be included in the <head> as required.
+
+C) <body> structure:
+   - A clean, responsive layout with:
+     - Header (title + small subtitle showing Load Method)
+     - Main content container with:
+       - A “demo card” panel that contains:
+         - A placeholder area where the embedded form will render (TARGET_CONTAINER_ID)
+         - If Manual + button click: a “Load Form” button that triggers InstallCP
+         - A small “Debug / Status” section
+   - Footer: “Created by Alvaro Barroso in Madrid, Españita.”
+
+D) JavaScript behavior:
+   1) Provide a single configuration object at the top of the script that includes:
+      - collectionPointId
+      - loadMethod
+      - containerId
+      - optionalRedirectUrl
+      - prefillMode
+   2) Implement Manual vs Instant:
+      - If Instant: do not call InstallCP manually (assume it appears on page load).
+      - If Manual: call InstallCP either on page load or on button click (based on TRIGGER_METHOD).
+   3) Add event listeners:
+      - window.addEventListener('OnetrustFormLoaded', ...) -> update status UI + console.log details
+      - window.addEventListener('OneTrustWebFormSubmitted', ...) -> show a success message + console.log details
+   4) Add robust fail-safe checks:
+      - If SDK/global objects aren’t available yet, show a clear error in the status UI and console.
+      - Avoid duplicate InstallCP calls (idempotent guard).
+   5) Prefill guidance:
+      - If PREFILL_MODE is enabled: include a short helper that reads query parameters and prints which fields are present (for debugging).
+      - IMPORTANT: Do NOT try to “set” fields by manipulating the DOM unless the docs explicitly provide a method. Prefill should rely on query parameters passed to the form URL and the OneTrust “Form Field Label” approach.
+
+E) Responsiveness:
+   - CSS must be responsive using modern layout primitives (flex/grid) and a mobile breakpoint.
+   - The layout must remain usable on phones (stacked sections, readable buttons, no horizontal scrolling).
+
+STEP 2 — Output format constraints
+- Output ONLY the final HTML file content (no extra commentary), once all required values are available.
+- The HTML must be a single file containing CSS and JS inline.
+- Use placeholders ONLY when I explicitly tell you a value is unknown.
+
+NOW: If required values are missing, ask me for them in a checklist.
+Otherwise, generate the HTML file.
 ```
 
 ---
