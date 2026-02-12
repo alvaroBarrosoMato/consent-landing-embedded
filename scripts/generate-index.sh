@@ -3,43 +3,46 @@ set -euo pipefail
 
 OUTPUT="index.html"
 
-# Collect html files (exclude index.html itself and common junk paths)
-mapfile -t FILES < <(
-  find . -type f -name "*.html" \
-    ! -path "./.git/*" \
-    ! -path "./node_modules/*" \
-    ! -path "./dist/*" \
-    ! -path "./build/*" \
-    ! -path "./.github/*" \
-    ! -path "./index.html" \
-  | sort \
-  | sed 's|^\./||'
+# --- Configure exclusions here ---
+EXCLUDES=(
+  "./.git/*"
+  "./node_modules/*"
+  "./dist/*"
+  "./build/*"
+  "./.github/*"
+  "./vendor/*"
 )
+
+# Collect html files (exclude index.html itself + excluded paths)
+FIND_CMD=(find . -type f -name "*.html" ! -path "./index.html")
+for p in "${EXCLUDES[@]}"; do
+  FIND_CMD+=(! -path "$p")
+done
+
+mapfile -t FILES < <("${FIND_CMD[@]}" | sort | sed 's|^\./||')
 
 COUNT="${#FILES[@]}"
 GENERATED_AT="$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
 
-# Build grouped list: folder -> files
-# We'll treat "a/b/c.html" as folder "a/b" and name "c.html"
-# Root-level files go under "(root)"
+# Group by directory
 declare -A GROUPS
 declare -a ORDERED_GROUPS
 
 for f in "${FILES[@]}"; do
   dir="$(dirname "$f")"
   base="$(basename "$f")"
-  if [[ "$dir" == "." ]]; then dir="(root)"; fi
-  key="$dir"
+  [[ "$dir" == "." ]] && dir="(root)"
 
-  if [[ -z "${GROUPS[$key]+x}" ]]; then
-    GROUPS[$key]=""
-    ORDERED_GROUPS+=("$key")
+  if [[ -z "${GROUPS[$dir]+x}" ]]; then
+    GROUPS[$dir]=""
+    ORDERED_GROUPS+=("$dir")
   fi
 
-  # Append a line with full path and base name (tab-separated)
-  GROUPS[$key]+="${f}"$'\t'"${base}"$'\n'
+  # store: fullpath<TAB>basename
+  GROUPS[$dir]+="${f}"$'\t'"${base}"$'\n'
 done
 
+# --- Write HTML ---
 cat > "$OUTPUT" <<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -47,33 +50,34 @@ cat > "$OUTPUT" <<HTML
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>HTML Directory</title>
-  <meta name="description" content="Browsable index of HTML files in this repository." />
+  <meta name="description" content="Auto-generated directory of HTML files in this repository." />
   <style>
     :root{
-      --bg: #0b1220;
+      --bg: #0b1020;
       --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.08);
+      --panel2: rgba(255,255,255,.10);
       --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.65);
+      --muted: rgba(255,255,255,.68);
       --border: rgba(255,255,255,.10);
       --accent: #7c3aed; /* violet */
-      --accent2: #22c55e; /* green */
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 16px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --accent2:#22c55e; /* green */
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
     }
     @media (prefers-color-scheme: light){
       :root{
-        --bg:#f7f8fb;
+        --bg:#f6f7fb;
         --panel:#ffffff;
-        --panel2:#f3f4f6;
+        --panel2:#f2f4f7;
         --text:#0f172a;
         --muted:#475569;
-        --border:rgba(15,23,42,.12);
-        --shadow: 0 10px 30px rgba(15,23,42,.10);
+        --border: rgba(15,23,42,.10);
+        --shadow: 0 16px 40px rgba(15,23,42,.12);
       }
     }
+
     *{ box-sizing:border-box; }
     body{
       margin:0;
@@ -83,50 +87,66 @@ cat > "$OUTPUT" <<HTML
         radial-gradient(1200px 800px at 10% -10%, rgba(124,58,237,.35), transparent 60%),
         radial-gradient(900px 600px at 90% 0%, rgba(34,197,94,.22), transparent 55%),
         var(--bg);
-      min-height: 100vh;
+      min-height:100vh;
     }
-    a{ color: inherit; text-decoration:none; }
-    a:hover{ text-decoration:underline; }
 
-    .wrap{ max-width: 1100px; margin: 0 auto; padding: 32px 18px 60px; }
+    a{ color:inherit; text-decoration:none; }
+    a:hover{ text-decoration:none; }
 
-    header{
-      display:flex;
-      flex-wrap:wrap;
-      gap:16px;
-      align-items:flex-end;
-      justify-content:space-between;
-      margin-bottom: 20px;
-    }
-    .title{
-      display:flex; flex-direction:column; gap:8px;
-    }
-    h1{
-      margin:0;
-      font-size: clamp(26px, 3.4vw, 42px);
-      letter-spacing:-.03em;
-      line-height:1.1;
-    }
-    .meta{
-      display:flex; flex-wrap:wrap; gap:10px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 999px;
-      box-shadow: var(--shadow);
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 28px 18px 64px; }
+
+    /* Top bar */
+    .top{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,.35), transparent);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+    }
+
+    .hero{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px 16px;
+      align-items:flex-end;
+      justify-content:space-between;
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(26px, 3.4vw, 44px);
+      letter-spacing:-.035em;
+      line-height:1.05;
+    }
+
+    .sub{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow: var(--shadow);
     }
     .dot{
       width:10px;height:10px;border-radius:50%;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       box-shadow: 0 0 0 3px rgba(124,58,237,.18);
     }
+    .mono{ font-family: var(--mono); }
 
     .controls{
       display:flex;
@@ -134,13 +154,10 @@ cat > "$OUTPUT" <<HTML
       gap:10px;
       align-items:center;
       justify-content:flex-end;
-      min-width: 280px;
+      min-width: 320px;
     }
-    .search{
-      flex: 1 1 280px;
-      max-width: 460px;
-      position: relative;
-    }
+
+    .search{ position:relative; flex: 1 1 320px; max-width: 520px; }
     .search input{
       width:100%;
       padding: 12px 14px 12px 40px;
@@ -148,16 +165,17 @@ cat > "$OUTPUT" <<HTML
       border: 1px solid var(--border);
       background: var(--panel);
       color: var(--text);
-      outline: none;
+      outline:none;
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
     }
     .search input::placeholder{ color: var(--muted); }
     .search svg{
-      position:absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      opacity: .7;
+      position:absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      opacity:.75;
     }
+
     .btn{
       border: 1px solid var(--border);
       background: var(--panel);
@@ -166,61 +184,68 @@ cat > "$OUTPUT" <<HTML
       padding: 10px 12px;
       cursor:pointer;
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      transition: transform .08s ease, background .15s ease;
+      user-select:none;
     }
     .btn:hover{ background: var(--panel2); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
 
+    /* Cards grid */
     .grid{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 14px;
       margin-top: 18px;
     }
+
     .card{
-      background: var(--panel);
       border: 1px solid var(--border);
+      background: var(--panel);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: transform .18s ease, background .18s ease;
     }
-    .card .head{
+    .card:hover{ transform: translateY(-2px); background: var(--panel2); }
+
+    .head{
       padding: 14px 14px 10px;
       border-bottom: 1px solid var(--border);
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      gap:10px;
+      gap:12px;
     }
     .folder{
-      font-weight: 650;
+      display:flex; gap:10px; align-items:center; min-width:0;
+      font-weight: 700;
       letter-spacing: -.01em;
-      display:flex; align-items:center; gap:10px;
-      min-width: 0;
     }
     .folder code{
       font-family: var(--mono);
       font-size: 12.5px;
       color: var(--muted);
-      background: rgba(0,0,0,.10);
       border: 1px solid var(--border);
+      background: rgba(0,0,0,.10);
       padding: 3px 8px;
       border-radius: 999px;
-      white-space: nowrap;
+      max-width: 100%;
       overflow:hidden;
       text-overflow: ellipsis;
-      max-width: 100%;
+      white-space:nowrap;
     }
     @media (prefers-color-scheme: light){
       .folder code{ background: rgba(15,23,42,.04); }
     }
+
     .count{
       font-size: 12.5px;
       color: var(--muted);
       white-space: nowrap;
+      margin-top: 2px;
     }
+
     ul{
       list-style:none;
       margin:0;
@@ -229,24 +254,32 @@ cat > "$OUTPUT" <<HTML
       flex-direction:column;
       gap:8px;
     }
+
     li a{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:12px;
       padding: 10px 10px;
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid transparent;
+      transition: background .15s ease, border-color .15s ease;
     }
     li a:hover{
-      background: var(--panel2);
+      background: rgba(255,255,255,.06);
       border-color: var(--border);
-      text-decoration:none;
     }
-    .name{
-      display:flex; align-items:center; gap:10px;
+    @media (prefers-color-scheme: light){
+      li a:hover{ background: rgba(15,23,42,.04); }
+    }
+
+    .left{
+      display:flex;
+      align-items:center;
+      gap:10px;
       min-width:0;
     }
+
     .badge{
       font-family: var(--mono);
       font-size: 11.5px;
@@ -260,18 +293,39 @@ cat > "$OUTPUT" <<HTML
     @media (prefers-color-scheme: light){
       .badge{ background: rgba(15,23,42,.04); }
     }
+
     .file{
       white-space:nowrap;
       overflow:hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      font-weight: 600;
+      letter-spacing: -.01em;
     }
-    .arrow{
-      opacity:.6;
+
+    .path{
+      display:block;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
       flex: 0 0 auto;
+      color: var(--muted);
     }
+    .icon{ opacity:.7; }
+
     .empty{
-      margin-top: 26px;
+      margin-top: 22px;
       padding: 18px;
       border-radius: var(--radius);
       border: 1px dashed var(--border);
@@ -279,8 +333,9 @@ cat > "$OUTPUT" <<HTML
       text-align:center;
       background: rgba(255,255,255,.03);
     }
+
     footer{
-      margin-top: 28px;
+      margin-top: 26px;
       color: var(--muted);
       font-size: 13px;
       display:flex;
@@ -288,68 +343,95 @@ cat > "$OUTPUT" <<HTML
       flex-wrap:wrap;
       gap:10px;
     }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      font-size: 13px;
+    }
+    .toast.show{
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="title">
-        <h1>HTML Directory</h1>
-        <div class="meta">
-          <span class="pill"><span class="dot"></span><strong>${COUNT}</strong> files</span>
-          <span class="pill">Generated: <span style="font-family:var(--mono)">${GENERATED_AT}</span></span>
-        </div>
-      </div>
 
-      <div class="controls">
-        <div class="search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M21 21l-4.3-4.3m1.8-5.2a7 7 0 11-14 0 7 7 0 0114 0z"
-              stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <input id="q" type="search" placeholder="Filter files… (e.g. demo, landing, v2)" autocomplete="off" />
+    <div class="top">
+      <div class="hero">
+        <div>
+          <h1>HTML Directory</h1>
+          <div class="sub">
+            <span class="pill"><span class="dot"></span><strong>${COUNT}</strong> file(s)</span>
+            <span class="pill">Generated: <span class="mono">${GENERATED_AT}</span></span>
+          </div>
         </div>
-        <button class="btn" id="expand">Expand all</button>
-        <button class="btn" id="collapse">Collapse all</button>
+
+        <div class="controls">
+          <div class="search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 21l-4.3-4.3m1.8-5.2a7 7 0 11-14 0 7 7 0 0114 0z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input id="q" type="search" placeholder="Filter by folder, filename, or path…" autocomplete="off" />
+          </div>
+          <button class="btn" id="expand">Show all</button>
+          <button class="btn" id="collapse">Hide all</button>
+        </div>
       </div>
-    </header>
+    </div>
 HTML
 
 if [[ "$COUNT" -eq 0 ]]; then
   cat >> "$OUTPUT" <<'HTML'
-    <div class="empty">No <code class="badge">*.html</code> files found (after exclusions).</div>
+    <div class="empty">No <span class="badge">*.html</span> files found (after exclusions).</div>
 HTML
 else
   echo '    <div class="grid" id="grid">' >> "$OUTPUT"
 
   for group in "${ORDERED_GROUPS[@]}"; do
-    # Count files in group
     group_count="$(printf "%s" "${GROUPS[$group]}" | grep -c $'\t' || true)"
 
-    # Use <details> to allow collapse/expand
     cat >> "$OUTPUT" <<HTML
       <div class="card" data-folder="${group}">
         <div class="head">
           <div class="folder">
-            <span style="width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:inline-block;"></span>
-            <code>${group}</code>
+            <span class="dot"></span>
+            <code title="${group}">${group}</code>
           </div>
-          <div class="count">${group_count} file(s)</div>
+          <div class="count">${group_count} item(s)</div>
         </div>
         <ul>
 HTML
 
-    # Emit links
     while IFS=$'\t' read -r full base; do
       [[ -z "${full:-}" ]] && continue
+      # The link is relative (perfect for GitHub Pages repo sites)
       cat >> "$OUTPUT" <<HTML
           <li data-file="${full}">
             <a href="${full}">
-              <span class="name">
+              <span class="left">
                 <span class="badge">HTML</span>
-                <span class="file">${base}</span>
+                <span style="min-width:0">
+                  <span class="file">${base}</span>
+                  <span class="path">${full}</span>
+                </span>
               </span>
-              <span class="arrow">↗</span>
+              <span class="right" title="Open">
+                <span class="icon">↗</span>
+              </span>
             </a>
           </li>
 HTML
@@ -366,17 +448,19 @@ fi
 
 cat >> "$OUTPUT" <<'HTML'
     <footer>
-      <span>Tip: use the filter box to quickly find a page.</span>
-      <span style="font-family:var(--mono)">index.html</span>
+      <span>Tip: click a file to open it. Use search to filter instantly.</span>
+      <span class="mono">index.html</span>
     </footer>
   </div>
 
+  <div class="toast" id="toast">Copied</div>
+
   <script>
-    // Simple client-side filter (no dependencies)
     const q = document.getElementById('q');
     const grid = document.getElementById('grid');
     const expand = document.getElementById('expand');
     const collapse = document.getElementById('collapse');
+    const toast = document.getElementById('toast');
 
     function normalize(s){ return (s || '').toLowerCase(); }
 
@@ -404,12 +488,32 @@ cat >> "$OUTPUT" <<'HTML'
     q?.addEventListener('input', applyFilter);
     applyFilter();
 
-    // Expand/collapse controls work by toggling each card's list visibility
+    // Show/Hide all lists (simple + effective)
     expand?.addEventListener('click', () => {
       document.querySelectorAll('.card ul').forEach(ul => ul.style.display = '');
     });
     collapse?.addEventListener('click', () => {
       document.querySelectorAll('.card ul').forEach(ul => ul.style.display = 'none');
+    });
+
+    // Bonus UX: cmd/ctrl-click on a file path copies the URL
+    document.addEventListener('click', async (e) => {
+      const a = e.target.closest('a[href]');
+      if(!a) return;
+
+      const isCopy = e.metaKey || e.ctrlKey;
+      if(!isCopy) return;
+
+      e.preventDefault();
+      const href = a.getAttribute('href');
+      try{
+        await navigator.clipboard.writeText(href);
+        toast.textContent = "Copied: " + href;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1200);
+      }catch(err){
+        // fallback: do nothing
+      }
     });
   </script>
 </body>
